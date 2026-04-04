@@ -1,3 +1,14 @@
+node_modules/
+dist/
+.env
+.env.*
+coverage/
+.turbo
+.idea
+.vscode
+.DS_Store
+uploads/
+pnpm-lock.yaml
 # Dependencies
 node_modules/
 
