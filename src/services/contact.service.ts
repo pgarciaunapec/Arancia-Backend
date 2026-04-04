@@ -4,7 +4,13 @@
  */
 
 import { Contact } from "../models/Contact";
-import { CreateContactRequestDTO, ContactResponseDTO } from "../dtos/index";
+import { EventRequest } from "../models/EventRequest";
+import {
+  ContactResponseDTO,
+  CreateContactRequestDTO,
+  CreateEventRequestDTO,
+  EventRequestResponseDTO,
+} from "../dtos/index";
 
 export class ContactService {
   /**
@@ -17,12 +23,32 @@ export class ContactService {
       name: dto.name,
       email: dto.email.toLowerCase(),
       phone: dto.phone,
-      subject: dto.subject,
       message: dto.message,
-      status: "new",
+      status: "unread",
     });
 
     return this.mapToResponseDTO(contact);
+  }
+
+  /**
+   * Create a new event quote request
+   */
+  static async createEventRequest(
+    dto: CreateEventRequestDTO,
+  ): Promise<EventRequestResponseDTO> {
+    const eventRequest = await EventRequest.create({
+      name: dto.name,
+      email: dto.email.toLowerCase(),
+      phone: dto.phone,
+      eventType: dto.eventType,
+      packageName: dto.packageName,
+      guests: dto.guests,
+      preferredDate: dto.preferredDate,
+      notes: dto.notes,
+      status: "pending",
+    });
+
+    return this.mapEventRequestToResponseDTO(eventRequest);
   }
 
   /**
@@ -69,7 +95,7 @@ export class ContactService {
     id: string,
     status: string,
   ): Promise<ContactResponseDTO> {
-    const validStatuses = ["new", "read", "responded", "closed"];
+    const validStatuses = ["unread", "read", "responded"];
     if (!validStatuses.includes(status)) {
       throw new Error("Estado inválido");
     }
@@ -106,11 +132,32 @@ export class ContactService {
       name: contact.name,
       email: contact.email,
       phone: contact.phone,
-      subject: contact.subject,
       message: contact.message,
       status: contact.status,
       createdAt: contact.createdAt,
       updatedAt: contact.updatedAt,
+    };
+  }
+
+  /**
+   * Map event request to response DTO
+   */
+  private static mapEventRequestToResponseDTO(
+    eventRequest: any,
+  ): EventRequestResponseDTO {
+    return {
+      _id: eventRequest._id,
+      name: eventRequest.name,
+      email: eventRequest.email,
+      phone: eventRequest.phone,
+      eventType: eventRequest.eventType,
+      packageName: eventRequest.packageName,
+      guests: eventRequest.guests,
+      preferredDate: eventRequest.preferredDate,
+      notes: eventRequest.notes,
+      status: eventRequest.status,
+      createdAt: eventRequest.createdAt,
+      updatedAt: eventRequest.updatedAt,
     };
   }
 }

@@ -4,7 +4,7 @@
 
 import { Request, Response } from "express";
 import { ContactService } from "../services/contact.service";
-import { CreateContactRequestDTO } from "../dtos/index";
+import { CreateContactRequestDTO, CreateEventRequestDTO } from "../dtos/index";
 import { sendSuccess, sendError } from "../utils/response.util";
 
 export class ContactController {
@@ -13,6 +13,23 @@ export class ContactController {
       const dto: CreateContactRequestDTO = req.body;
       const contact = await ContactService.create(dto);
       sendSuccess(res, contact, 201, "Mensaje de contacto enviado");
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, error.message, 400);
+      }
+    }
+  }
+
+  static async createEventQuote(req: Request, res: Response): Promise<void> {
+    try {
+      const dto: CreateEventRequestDTO = req.body;
+      const eventRequest = await ContactService.createEventRequest(dto);
+      sendSuccess(
+        res,
+        eventRequest,
+        201,
+        "Solicitud de cotización recibida",
+      );
     } catch (error) {
       if (error instanceof Error) {
         sendError(res, error.message, 400);

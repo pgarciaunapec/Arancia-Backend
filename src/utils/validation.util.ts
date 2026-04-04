@@ -104,9 +104,29 @@ export const validateCreateReservation = (): ValidationChain[] => [
 export const validateCreateContact = (): ValidationChain[] => [
   body("name").trim().notEmpty().withMessage("El nombre es requerido"),
   body("email").isEmail().withMessage("Email inválido"),
-  body("subject").trim().notEmpty().withMessage("El asunto es requerido"),
   body("message").trim().notEmpty().withMessage("El mensaje es requerido"),
   body("phone").optional().trim(),
+];
+
+/**
+ * Event quote validation rules
+ */
+export const validateCreateEventRequest = (): ValidationChain[] => [
+  body("name").trim().notEmpty().withMessage("El nombre es requerido"),
+  body("email").isEmail().withMessage("Email inválido"),
+  body("phone").trim().notEmpty().withMessage("El teléfono es requerido"),
+  body("eventType")
+    .isIn(["social", "corporativo", "privado", "otro"])
+    .withMessage("Tipo de evento inválido"),
+  body("packageName")
+    .optional()
+    .isIn(["Esencial", "Premium", "Elite"])
+    .withMessage("Paquete inválido"),
+  body("guests")
+    .isInt({ min: 1 })
+    .withMessage("El número de invitados debe ser al menos 1"),
+  body("preferredDate").optional().isISO8601().withMessage("Fecha inválida"),
+  body("notes").optional().trim().isLength({ max: 1000 }),
 ];
 
 /**

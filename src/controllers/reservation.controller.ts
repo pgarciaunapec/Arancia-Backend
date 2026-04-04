@@ -49,10 +49,7 @@ export class ReservationController {
       const reservations = await ReservationService.getUserReservations(
         req.user.id,
       );
-      sendSuccess(res, {
-        count: reservations.length,
-        data: reservations,
-      });
+      sendSuccess(res, reservations);
     } catch (error) {
       if (error instanceof Error) {
         sendError(res, error.message);

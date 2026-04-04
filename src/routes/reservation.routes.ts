@@ -40,6 +40,7 @@ router.post(
  *       - bearerAuth: []
  */
 router.get("/my-reservations", authMiddleware, ReservationController.getUserReservations);
+router.get("/my", authMiddleware, ReservationController.getUserReservations);
 
 /**
  * @swagger
@@ -109,6 +110,13 @@ router.put(
  *       - Reservaciones
  */
 router.post(
+  "/:id/cancel",
+  validateMongoId(),
+  handleValidationErrors,
+  ReservationController.cancel,
+);
+
+router.put(
   "/:id/cancel",
   validateMongoId(),
   handleValidationErrors,

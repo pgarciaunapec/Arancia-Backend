@@ -60,10 +60,7 @@ export class OrderController {
         return;
       }
       const orders = await OrderService.getUserOrders(req.user.id);
-      sendSuccess(res, {
-        count: orders.length,
-        data: orders,
-      });
+      sendSuccess(res, orders);
     } catch (error) {
       if (error instanceof Error) {
         sendError(res, error.message);

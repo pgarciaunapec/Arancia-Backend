@@ -78,7 +78,10 @@ export class OrderService {
    * Get all orders for a user
    */
   static async getUserOrders(userId: string): Promise<OrderResponseDTO[]> {
-    const orders = await Order.find({ user: userId }).sort({ createdAt: -1 });
+    const orders = await Order.find({
+      user: userId,
+      status: { $ne: "cart" },
+    }).sort({ createdAt: -1 });
     return orders.map((order) => this.mapToResponseDTO(order));
   }
 

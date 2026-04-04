@@ -27,7 +27,6 @@ export interface CreateContactRequestDTO {
   name: string;
   email: string;
   phone?: string;
-  subject: string;
   message: string;
 }
 
@@ -36,7 +35,6 @@ export interface ContactResponseDTO {
   name: string;
   email: string;
   phone?: string;
-  subject: string;
   message: string;
   status: string;
   createdAt: Date;
@@ -59,28 +57,26 @@ export interface ImageResponseDTO {
  * EventRequest DTOs
  */
 export interface CreateEventRequestDTO {
-  eventName: string;
-  eventDate: Date;
-  numberOfGuests: number;
-  budget: number;
-  selectedPackage: "Esencial" | "Premium" | "Elite";
   name: string;
   email: string;
   phone: string;
-  additionalNotes?: string;
+  eventType: "social" | "corporativo" | "privado" | "otro";
+  packageName?: "Esencial" | "Premium" | "Elite";
+  guests: number;
+  preferredDate?: Date;
+  notes?: string;
 }
 
 export interface EventRequestResponseDTO {
   _id: string;
-  eventName: string;
-  eventDate: Date;
-  numberOfGuests: number;
-  budget: number;
-  selectedPackage: string;
   name: string;
   email: string;
   phone: string;
-  additionalNotes?: string;
+  eventType: string;
+  packageName?: string;
+  guests: number;
+  preferredDate?: Date;
+  notes?: string;
   status: string;
   createdAt: Date;
   updatedAt: Date;

@@ -7,6 +7,35 @@ import { AuthRequest } from "../../types/index";
 
 const router: import('express').Router = Router();
 
+// @route   GET /api/admin/table-bills
+// @desc    List table bills
+// @access  Admin/Staff
+router.get(
+  "/",
+  authMiddleware,
+  requireRole(["admin", "staff"]),
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const { status, tableId } = req.query;
+      const query: Record<string, unknown> = {};
+
+      if (status) query.status = status;
+      if (tableId) query.table = tableId;
+
+      const bills = await TableBill.find(query)
+        .populate("table", "number zone")
+        .populate("waiter", "name")
+        .populate("customer", "name email isVip vipDiscount")
+        .sort({ createdAt: -1 });
+
+      res.json({ success: true, data: bills });
+    } catch (error) {
+      console.error("Get bills error:", error);
+      res.status(500).json({ error: "Error al obtener cuentas" });
+    }
+  },
+);
+
 // @route   POST /api/admin/table-bills
 // @desc    Open a new bill for a table
 // @access  Admin/Staff

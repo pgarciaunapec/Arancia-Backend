@@ -8,6 +8,7 @@ import { authMiddleware } from "../middleware/auth.middleware";
 import { adminMiddleware } from "../middleware/admin.middleware";
 import {
   validateCreateContact,
+  validateCreateEventRequest,
   validateMongoId,
   handleValidationErrors,
 } from "../utils/index";
@@ -27,6 +28,21 @@ router.post(
   validateCreateContact(),
   handleValidationErrors,
   ContactController.create,
+);
+
+/**
+ * @swagger
+ * /contact/event-quote:
+ *   post:
+ *     summary: Enviar solicitud de cotización de evento
+ *     tags:
+ *       - Contacto
+ */
+router.post(
+  "/event-quote",
+  validateCreateEventRequest(),
+  handleValidationErrors,
+  ContactController.createEventQuote,
 );
 
 /**

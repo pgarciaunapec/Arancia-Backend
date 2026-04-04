@@ -24,10 +24,7 @@ export class MenuItemController {
         search as string | undefined,
         available === "true",
       );
-      sendSuccess(res, {
-        count: items.length,
-        data: items,
-      });
+      sendSuccess(res, items);
     } catch (error) {
       if (error instanceof Error) {
         sendError(res, error.message);
@@ -42,9 +39,7 @@ export class MenuItemController {
   static async getCategories(req: Request, res: Response): Promise<void> {
     try {
       const categories = await MenuItemService.getCategories();
-      sendSuccess(res, {
-        data: categories,
-      });
+      sendSuccess(res, categories);
     } catch (error) {
       if (error instanceof Error) {
         sendError(res, error.message);
@@ -130,10 +125,7 @@ export class MenuItemController {
     try {
       const { query } = req.params;
       const items = await MenuItemService.search(query);
-      sendSuccess(res, {
-        count: items.length,
-        data: items,
-      });
+      sendSuccess(res, items);
     } catch (error) {
       if (error instanceof Error) {
         sendError(res, error.message);
