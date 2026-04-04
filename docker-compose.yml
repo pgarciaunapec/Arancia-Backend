@@ -6,6 +6,8 @@ services:
     image: arancia-backend:latest
     restart: always
     env_file: .env
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/restaurant01
     ports:
       - "5000:5000"
     volumes:
