@@ -8,27 +8,14 @@ services:
     env_file: .env
     ports:
       - "5000:5000"
-    depends_on:
-      - mongo
     volumes:
       - uploads:/app/uploads
     networks:
-      - arancia-net
-
-  mongo:
-    image: mongo:6.0
-    restart: always
-    volumes:
-      - mongo-data:/data/db
-    environment:
-      MONGO_INITDB_DATABASE: restaurant01
-    networks:
-      - arancia-net
+      - dokploy
 
 volumes:
-  mongo-data:
   uploads:
 
 networks:
-  arancia-net:
-    driver: bridge
+  dokploy:
+    external: true
