@@ -11,7 +11,7 @@ services:
     volumes:
       - uploads:/app/uploads
     networks:
-      - dokploy
+      - dokploy-network
 
 volumes:
   uploads:
