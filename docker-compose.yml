@@ -10,7 +10,7 @@ services:
       # Use external MongoDB host provided (overrides .env MONGODB_URI)
       - MONGODB_URI=mongodb://mongo:Pantonio2404@129.213.147.180:27017
     ports:
-      - "5000:5000"
+      - "${PORT:-5000}:${PORT:-5000}"
     volumes:
       - uploads:/app/uploads
     networks:
