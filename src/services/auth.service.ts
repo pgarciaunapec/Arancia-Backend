@@ -37,15 +37,11 @@ export class AuthService {
       throw new Error("El email ya está registrado");
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(dto.password, salt);
-
-    // Create user
+    // Create user (password will be hashed by the model pre-save hook)
     const user = await User.create({
       name: dto.name,
       email: dto.email.toLowerCase(),
-      password: hashedPassword,
+      password: dto.password,
       phone: dto.phone,
       address: dto.address,
       role: "customer",
@@ -66,10 +62,10 @@ export class AuthService {
     user: UserResponseDTO;
     token: string;
   }> {
-    // Find user
+    // Find user (include password field which is excluded by default)
     const user = await User.findOne({
       email: dto.email.toLowerCase(),
-    });
+    }).select('+password');
     if (!user) {
       throw new Error("Credenciales inválidas");
     }
@@ -110,7 +106,8 @@ export class AuthService {
     userId: string,
     dto: ChangePasswordRequestDTO,
   ): Promise<void> {
-    const user = await User.findById(userId);
+    // Include password for verification
+    const user = await User.findById(userId).select('+password');
     if (!user) {
       throw new Error("Usuario no encontrado");
     }
@@ -124,12 +121,8 @@ export class AuthService {
       throw new Error("Contraseña actual incorrecta");
     }
 
-    // Hash new password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(dto.newPassword, salt);
-
-    // Update password
-    user.password = hashedPassword;
+    // Update password (model pre-save hook will hash it)
+    user.password = dto.newPassword;
     await user.save();
   }
 
