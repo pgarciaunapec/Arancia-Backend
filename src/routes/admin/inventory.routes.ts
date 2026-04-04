@@ -1,0 +1,196 @@
+import { Router, Response } from "express";
+import { body, validationResult } from "express-validator";
+import { InventoryItem } from "../../models/index";
+import { authMiddleware } from "../../middleware/auth.middleware";
+import { requireRole } from "../../middleware/role.middleware";
+import { AuthRequest } from "../../types/index";
+
+const router = Router();
+
+// @route   GET /api/admin/inventory
+// @desc    List inventory items
+// @access  Admin
+router.get(
+  "/",
+  authMiddleware,
+  requireRole(["admin"]),
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const { category, search, lowStock } = req.query;
+      const query: Record<string, unknown> = { isActive: true };
+
+      if (category) query.category = category;
+      if (search) {
+        query.name = { $regex: search, $options: "i" };
+      }
+
+      let items = await InventoryItem.find(query).sort({ name: 1 });
+
+      if (lowStock === "true") {
+        items = items.filter((item) => item.isLowStock);
+      }
+
+      const lowStockCount = items.filter((item) => item.isLowStock).length;
+
+      res.json({
+        success: true,
+        data: items,
+        lowStockCount,
+      });
+    } catch (error) {
+      console.error("Get inventory error:", error);
+      res.status(500).json({ error: "Error al obtener inventario" });
+    }
+  },
+);
+
+// @route   POST /api/admin/inventory
+// @desc    Create inventory item
+// @access  Admin
+router.post(
+  "/",
+  authMiddleware,
+  requireRole(["admin"]),
+  [
+    body("name").trim().notEmpty().withMessage("Nombre requerido"),
+    body("category").trim().notEmpty().withMessage("Categoría requerida"),
+    body("currentStock")
+      .isFloat({ min: 0 })
+      .withMessage("Stock actual requerido"),
+    body("minimumStock")
+      .isFloat({ min: 0 })
+      .withMessage("Stock mínimo requerido"),
+    body("unit").trim().notEmpty().withMessage("Unidad requerida"),
+    body("costPerUnit").isFloat({ min: 0 }).withMessage("Costo requerido"),
+  ],
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() });
+        return;
+      }
+
+      const item = await InventoryItem.create(req.body);
+      res.status(201).json({ success: true, data: item });
+    } catch (error) {
+      console.error("Create inventory error:", error);
+      res.status(500).json({ error: "Error al crear ítem" });
+    }
+  },
+);
+
+// @route   PUT /api/admin/inventory/:id
+// @desc    Update inventory item
+// @access  Admin
+router.put(
+  "/:id",
+  authMiddleware,
+  requireRole(["admin"]),
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const item = await InventoryItem.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        {
+          new: true,
+          runValidators: true,
+        },
+      );
+
+      if (!item) {
+        res.status(404).json({ error: "Ítem no encontrado" });
+        return;
+      }
+
+      res.json({ success: true, data: item });
+    } catch (error) {
+      console.error("Update inventory error:", error);
+      res.status(500).json({ error: "Error al actualizar ítem" });
+    }
+  },
+);
+
+// @route   PATCH /api/admin/inventory/:id/restock
+// @desc    Restock an item
+// @access  Admin
+router.patch(
+  "/:id/restock",
+  authMiddleware,
+  requireRole(["admin"]),
+  [body("quantity").isFloat({ min: 0.1 }).withMessage("Cantidad requerida")],
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() });
+        return;
+      }
+
+      const item = await InventoryItem.findById(req.params.id);
+      if (!item) {
+        res.status(404).json({ error: "Ítem no encontrado" });
+        return;
+      }
+
+      item.currentStock += req.body.quantity;
+      item.lastRestocked = new Date();
+      await item.save();
+
+      res.json({ success: true, data: item, message: "Stock actualizado" });
+    } catch (error) {
+      console.error("Restock error:", error);
+      res.status(500).json({ error: "Error al reabastecer" });
+    }
+  },
+);
+
+// @route   DELETE /api/admin/inventory/:id
+// @desc    Soft delete inventory item
+// @access  Admin
+router.delete(
+  "/:id",
+  authMiddleware,
+  requireRole(["admin"]),
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const item = await InventoryItem.findByIdAndUpdate(
+        req.params.id,
+        { isActive: false },
+        { new: true },
+      );
+
+      if (!item) {
+        res.status(404).json({ error: "Ítem no encontrado" });
+        return;
+      }
+
+      res.json({ success: true, message: "Ítem eliminado" });
+    } catch (error) {
+      console.error("Delete inventory error:", error);
+      res.status(500).json({ error: "Error al eliminar ítem" });
+    }
+  },
+);
+
+// @route   GET /api/admin/inventory/alerts
+// @desc    Get low stock alerts
+// @access  Admin
+router.get(
+  "/alerts",
+  authMiddleware,
+  requireRole(["admin"]),
+  async (_req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const items = await InventoryItem.find({ isActive: true });
+      const alerts = items.filter((item) => item.isLowStock);
+
+      res.json({ success: true, data: alerts, count: alerts.length });
+    } catch (error) {
+      console.error("Get alerts error:", error);
+      res.status(500).json({ error: "Error al obtener alertas" });
+    }
+  },
+);
+
+export default router;

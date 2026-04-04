@@ -1,0 +1,108 @@
+import mongoose, { Schema, Document } from "mongoose";
+import { IOrder, OrderStatus, PaymentStatus } from "../types/index";
+
+export interface IOrderDocument extends Omit<IOrder, "_id">, Document {}
+
+const orderItemSchema = new Schema(
+  {
+    menuItem: {
+      type: Schema.Types.ObjectId,
+      ref: "MenuItem",
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: [1, "La cantidad mínima es 1"],
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+  },
+  { _id: false },
+);
+
+const shippingAddressSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    address: { type: String, required: true },
+    city: { type: String, required: true },
+    zip: { type: String, required: true },
+  },
+  { _id: false },
+);
+
+const orderSchema = new Schema<IOrderDocument>(
+  {
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+    items: {
+      type: [orderItemSchema],
+      default: [],
+    },
+    subtotal: {
+      type: Number,
+      default: 0,
+    },
+    tax: {
+      type: Number,
+      default: 0,
+    },
+    total: {
+      type: Number,
+      default: 0,
+    },
+    status: {
+      type: String,
+      enum: [
+        "cart",
+        "pending",
+        "confirmed",
+        "preparing",
+        "ready",
+        "delivered",
+        "cancelled",
+      ] as OrderStatus[],
+      default: "cart",
+    },
+    shippingAddress: {
+      type: shippingAddressSchema,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "refunded"] as PaymentStatus[],
+      default: "pending",
+    },
+    isDelivery: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
+    timestamps: true,
+  },
+);
+
+// Calculate totals before saving
+orderSchema.pre("save", function (next) {
+  if (this.items && this.items.length > 0) {
+    this.subtotal = this.items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
+    this.tax = this.subtotal * 0.18; // 18% tax
+    this.total = this.subtotal + this.tax;
+  }
+  next();
+});
+
+export const Order = mongoose.model<IOrderDocument>("Order", orderSchema);
