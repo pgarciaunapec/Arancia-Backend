@@ -93,10 +93,11 @@ const orderSchema = new Schema<IOrderDocument>(
 );
 
 // Calculate totals before saving
-orderSchema.pre("save", function (next) {
+orderSchema.pre("save", function (this: IOrderDocument, next) {
   if (this.items && this.items.length > 0) {
     this.subtotal = this.items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
+      (sum: number, item: { price: number; quantity: number }) =>
+        sum + item.price * item.quantity,
       0,
     );
     this.tax = this.subtotal * 0.18; // 18% tax

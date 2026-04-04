@@ -5,7 +5,7 @@ import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
 import { AuthRequest } from "../../types/index";
 
-const router = Router();
+const router: import('express').Router = Router();
 
 // @route   GET /api/admin/users
 // @desc    List users with search, filters, pagination

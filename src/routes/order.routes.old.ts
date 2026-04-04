@@ -4,7 +4,7 @@ import { Order } from "../models/index";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { AuthRequest } from "../types/index";
 
-const router = Router();
+const router: import("express").Router = Router();
 
 /**
  * @swagger

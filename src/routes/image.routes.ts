@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { getImage } from "../controllers/image.controller";
 
-const router = Router();
+const router: import('express').Router = Router();
 
 // Handle CORS preflight requests
 router.options("/:id", (req: Request, res: Response) => {

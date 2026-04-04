@@ -4,7 +4,7 @@
  */
 
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { Secret } from "jsonwebtoken";
 import { User } from "../models/User";
 import { env } from "../config/env";
 import {
@@ -19,7 +19,7 @@ export class AuthService {
    * Generate JWT token
    */
   static generateToken(id: string, email: string): string {
-    return jwt.sign({ id, email }, env.jwtSecret as string, {
+    return (jwt as any).sign({ id, email }, env.jwtSecret, {
       expiresIn: env.jwtExpiresIn as string,
     });
   }

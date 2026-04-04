@@ -6,7 +6,7 @@ import { AuthRequest } from "../types/index";
 import { PaymentService } from "../services/payment.service";
 import { DeliveryService } from "../services/delivery.service";
 
-const router = Router();
+const router: import("express").Router = Router();
 
 // @route   POST /api/payments
 // @desc    Process a payment for an order

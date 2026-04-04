@@ -91,6 +91,7 @@ export interface IOrder {
   status: OrderStatus;
   shippingAddress?: IShippingAddress;
   paymentStatus: PaymentStatus;
+  isDelivery?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

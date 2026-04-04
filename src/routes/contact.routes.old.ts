@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { Contact, EventRequest } from '../models/index';
 
-const router = Router();
+const router: import('express').Router = Router();
 
 // @route   POST /api/contact
 // @desc    Send contact message

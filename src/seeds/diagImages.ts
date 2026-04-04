@@ -19,6 +19,10 @@ const diagImages = async () => {
 
         // 2. Cuántos documentos hay en GridFS (images.files)
         const db = mongoose.connection.db;
+        if (!db) {
+            console.error('MongoDB connection DB is not available');
+            process.exit(1);
+        }
         const gridfsCount = await db.collection('images.files').countDocuments();
         console.log(`\nDocumentos en colección 'images.files' (GridFS): ${gridfsCount}`);
 

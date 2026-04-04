@@ -4,7 +4,7 @@ import { authMiddleware } from "../middleware/auth.middleware";
 import { AuthRequest } from "../types/index";
 import { DeliveryService } from "../services/delivery.service";
 
-const router = Router();
+const router: import("express").Router = Router();
 
 // @route   GET /api/delivery/active
 // @desc    Get active delivery for current user

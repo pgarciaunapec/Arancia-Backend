@@ -6,7 +6,7 @@ import { requireRole } from "../../middleware/role.middleware";
 import { AuthRequest } from "../../types/index";
 import { DeliveryService } from "../../services/delivery.service";
 
-const router = Router();
+const router: import('express').Router = Router();
 
 // @route   GET /api/admin/delivery
 // @desc    List all active deliveries
