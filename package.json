@@ -8,6 +8,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed": "tsx src/seeds/menuSeed.ts",
+    "seed:all": "tsx src/seeds/seedAll.ts",
     "sync-images": "node scripts/sync-images.js",
     "test": "vitest run",
     "test:watch": "vitest",

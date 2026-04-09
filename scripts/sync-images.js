@@ -22,9 +22,9 @@ require('dotenv').config();
 const UPLOADS_DIR = path.resolve(__dirname, '..', 'uploads', 'images');
 const MAPPING_FILE = path.resolve(__dirname, '..', 'uploads', 'image-mapping.json');
 
-const FRONTEND_MENU = path.resolve(__dirname, '..', '..', 'src', 'data', 'menuData.ts');
-const FRONTEND_IMAGES = path.resolve(__dirname, '..', '..', 'src', 'data', 'imageUrls.ts');
-const FRONTEND_DIR = path.resolve(__dirname, '..', '..', 'src');
+const FRONTEND_MENU = process.env.FRONTEND_MENU || path.resolve(__dirname, '..', '..', 'src', 'data', 'menuData.ts');
+const FRONTEND_IMAGES = process.env.FRONTEND_IMAGES || path.resolve(__dirname, '..', '..', 'src', 'data', 'imageUrls.ts');
+const FRONTEND_DIR = process.env.FRONTEND_DIR || path.resolve(__dirname, '..', '..', 'src');
 
 const argv = require('minimist')(process.argv.slice(2));
 const APPLY = !!argv.apply;

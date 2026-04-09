@@ -7,8 +7,8 @@ services:
     restart: always
     env_file: .env
     environment:
-      # Use external MongoDB host provided (overrides .env MONGODB_URI)
-      - MONGODB_URI=mongodb://mongo:Pantonio2404@129.213.147.180:27017
+      - MONGODB_URI=mongodb://mongo:27017/restaurant01
+      - FRONTEND_URL=http://localhost:${FRONTEND_PORT:-8080}
     ports:
       - "${PORT:-5000}:${PORT:-5000}"
     volumes:
