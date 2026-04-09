@@ -16,6 +16,9 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
+# Allow overriding the runtime port via environment variable
+ENV PORT=5000
+
 # Install only production dependencies
 COPY package.json pnpm-lock.yaml ./
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -26,6 +29,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/uploads ./uploads
 
 EXPOSE 5000
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD wget -qO- http://localhost:5000/health || exit 1
+# Use the configured PORT and health endpoint
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD wget -qO- "http://localhost:${PORT}/api/health" || exit 1
 
 CMD ["node", "dist/server.js"]
