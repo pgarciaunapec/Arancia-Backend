@@ -51,6 +51,77 @@ router.get('/', authMiddleware, async (req: AuthRequest, res: Response): Promise
     }
 });
 
+// @route   POST /api/cart/merge
+// @desc    Merge guest cart items into authenticated user cart
+// @access  Private
+router.post(
+    '/merge',
+    authMiddleware,
+    [
+        body('items').isArray().withMessage('El campo items debe ser un array'),
+        body('items.*.menuItemId').notEmpty().withMessage('ID del plato requerido'),
+        body('items.*.quantity').isInt({ min: 1 }).withMessage('Cantidad inválida'),
+    ],
+    async (req: AuthRequest, res: Response): Promise<void> => {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                res.status(400).json({ errors: errors.array() });
+                return;
+            }
+
+            const incomingItems: Array<{ menuItemId: string; quantity: number }> = req.body.items || [];
+
+            let cart = await Order.findOne({ user: req.user!.id, status: 'cart' });
+            if (!cart) {
+                cart = await Order.create({ user: req.user!.id, status: 'cart', items: [] });
+            }
+
+            for (const incomingItem of incomingItems) {
+                const menuItemId = String(incomingItem.menuItemId);
+                const quantity = Number(incomingItem.quantity || 0);
+
+                if (!menuItemId || quantity <= 0) {
+                    continue;
+                }
+
+                const menuItem = await MenuItem.findById(menuItemId);
+                if (!menuItem || !menuItem.available) {
+                    continue;
+                }
+
+                const existingItemIndex = cart.items.findIndex(
+                    (item) => item.menuItem.toString() === menuItemId,
+                );
+
+                if (existingItemIndex > -1) {
+                    cart.items[existingItemIndex].quantity += quantity;
+                } else {
+                    cart.items.push({
+                        menuItem: menuItem._id as any,
+                        name: menuItem.name,
+                        quantity,
+                        price: menuItem.price,
+                    });
+                }
+            }
+
+            await cart.save();
+
+            const populatedCart = await getCartResponse(req.user!.id);
+
+            res.json({
+                success: true,
+                data: populatedCart,
+                message: 'Carrito de invitado fusionado exitosamente',
+            });
+        } catch (error) {
+            console.error('Merge cart error:', error);
+            res.status(500).json({ error: 'Error al fusionar el carrito' });
+        }
+    }
+);
+
 // @route   POST /api/cart
 // @desc    Add item to cart
 // @access  Private
