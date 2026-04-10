@@ -42,7 +42,11 @@ router.post(
  *     security:
  *       - bearerAuth: []
  */
-router.get("/my-reservations", authMiddleware, ReservationController.getUserReservations);
+router.get(
+  "/my-reservations",
+  authMiddleware,
+  ReservationController.getUserReservations,
+);
 router.get("/my", authMiddleware, ReservationController.getUserReservations);
 
 /**
@@ -53,7 +57,11 @@ router.get("/my", authMiddleware, ReservationController.getUserReservations);
  *     tags:
  *       - Reservaciones
  */
-router.get("/:id", validateYupParams(mongoIdParamYupSchema), ReservationController.getById);
+router.get(
+  "/:id",
+  validateYupParams(mongoIdParamYupSchema),
+  ReservationController.getById,
+);
 
 /**
  * @swagger
@@ -137,4 +145,3 @@ router.post(
 );
 
 export default router;
-

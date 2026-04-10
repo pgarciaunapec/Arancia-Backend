@@ -71,9 +71,7 @@ export const updateProfileYupSchema = yup.object({
 });
 
 export const changePasswordYupSchema = yup.object({
-  currentPassword: yup
-    .string()
-    .required("La contraseña actual es requerida"),
+  currentPassword: yup.string().required("La contraseña actual es requerida"),
   newPassword: yup
     .string()
     .required("La nueva contraseña es requerida")
@@ -88,7 +86,10 @@ export const createReservationYupSchema = yup.object({
   time: yup
     .string()
     .trim()
-    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "La hora debe estar en formato HH:MM")
+    .matches(
+      /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
+      "La hora debe estar en formato HH:MM",
+    )
     .required("La hora es requerida"),
   guests: yup
     .number()
@@ -122,7 +123,10 @@ export const updateReservationYupSchema = yup.object({
   time: yup
     .string()
     .trim()
-    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "La hora debe estar en formato HH:MM")
+    .matches(
+      /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
+      "La hora debe estar en formato HH:MM",
+    )
     .optional(),
   guests: yup
     .number()
@@ -140,7 +144,10 @@ export const updateReservationYupSchema = yup.object({
     .optional(),
   status: yup
     .string()
-    .oneOf(["pending", "confirmed", "cancelled", "completed"], "Estado inválido")
+    .oneOf(
+      ["pending", "confirmed", "cancelled", "completed"],
+      "Estado inválido",
+    )
     .optional(),
 });
 
@@ -181,7 +188,10 @@ export const eventQuoteYupSchema = yup.object({
   phone: yup.string().trim().required("El teléfono es requerido"),
   eventType: yup
     .string()
-    .oneOf(["social", "corporativo", "privado", "otro"], "Tipo de evento inválido")
+    .oneOf(
+      ["social", "corporativo", "privado", "otro"],
+      "Tipo de evento inválido",
+    )
     .required("El tipo de evento es requerido"),
   packageName: yup
     .string()
