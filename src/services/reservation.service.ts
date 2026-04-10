@@ -8,9 +8,36 @@ import {
   CreateReservationRequestDTO,
   UpdateReservationRequestDTO,
   ReservationResponseDTO,
+  ReservationPricingDTO,
 } from "../dtos/index";
 
+const COVER_PRICE_PER_GUEST = 500;
+
+type ReservationActor = {
+  id: string;
+  role?: string;
+};
+
 export class ReservationService {
+  private static canManageReservation(
+    reservationUserId: unknown,
+    actor?: ReservationActor,
+  ): boolean {
+    if (!actor) {
+      return false;
+    }
+
+    if (actor.role === "admin" || actor.role === "staff") {
+      return true;
+    }
+
+    if (!reservationUserId) {
+      return false;
+    }
+
+    return String(reservationUserId) === actor.id;
+  }
+
   /**
    * Create a new reservation
    */
@@ -104,27 +131,91 @@ export class ReservationService {
   static async update(
     id: string,
     dto: UpdateReservationRequestDTO,
+    actor?: ReservationActor,
   ): Promise<ReservationResponseDTO> {
-    const reservation = await Reservation.findByIdAndUpdate(
-      id,
-      { $set: dto },
-      { new: true, runValidators: true },
-    );
+    const reservation = await Reservation.findById(id);
 
     if (!reservation) {
       throw new Error("Reservación no encontrada");
     }
 
-    return this.mapToResponseDTO(reservation);
+    if (!actor) {
+      throw new Error("No autorizado");
+    }
+
+    if (!this.canManageReservation(reservation.user, actor)) {
+      throw new Error("No tienes permisos para editar esta reservación");
+    }
+
+    if (reservation.status === "cancelled") {
+      throw new Error("No se puede editar una reservación cancelada");
+    }
+
+    if (reservation.status === "completed") {
+      throw new Error("No se puede editar una reservación completada");
+    }
+
+    if (
+      actor.role !== "admin" &&
+      actor.role !== "staff" &&
+      dto.status &&
+      dto.status !== reservation.status
+    ) {
+      throw new Error("Solo el personal puede cambiar el estado de la reservación");
+    }
+
+    const nextGuests = dto.guests ?? reservation.guests;
+    const previousTotal = reservation.guests * COVER_PRICE_PER_GUEST;
+    const newTotal = nextGuests * COVER_PRICE_PER_GUEST;
+    const delta = newTotal - previousTotal;
+
+    const isPaidReservation = reservation.status === "confirmed";
+
+    if (isPaidReservation && delta > 0 && !dto.acceptAdditionalCharge) {
+      throw new Error(
+        `La reserva ya está pagada. Este ajuste requiere un cobro adicional de RD$${delta}. Confirma para continuar.`,
+      );
+    }
+
+    const { acceptAdditionalCharge: _acceptAdditionalCharge, ...updates } = dto;
+
+    for (const [key, value] of Object.entries(updates)) {
+      if (value !== undefined) {
+        (reservation as any)[key] = value;
+      }
+    }
+
+    await reservation.save();
+
+    const pricing: ReservationPricingDTO = {
+      coverPerGuest: COVER_PRICE_PER_GUEST,
+      previousTotal,
+      newTotal,
+      delta,
+      additionalChargeApplied: isPaidReservation && delta > 0,
+    };
+
+    return this.mapToResponseDTO(reservation, pricing);
   }
 
   /**
    * Cancel a reservation
    */
-  static async cancel(id: string): Promise<ReservationResponseDTO> {
+  static async cancel(
+    id: string,
+    actor?: ReservationActor,
+  ): Promise<ReservationResponseDTO> {
     const reservation = await Reservation.findById(id);
     if (!reservation) {
       throw new Error("Reservación no encontrada");
+    }
+
+    if (!actor) {
+      throw new Error("No autorizado");
+    }
+
+    if (!this.canManageReservation(reservation.user, actor)) {
+      throw new Error("No tienes permisos para cancelar esta reservación");
     }
 
     if (reservation.status === "cancelled") {
@@ -161,7 +252,10 @@ export class ReservationService {
   /**
    * Map to response DTO
    */
-  private static mapToResponseDTO(reservation: any): ReservationResponseDTO {
+  private static mapToResponseDTO(
+    reservation: any,
+    pricing?: ReservationPricingDTO,
+  ): ReservationResponseDTO {
     return {
       _id: reservation._id,
       user: reservation.user,
@@ -174,6 +268,7 @@ export class ReservationService {
       notes: reservation.notes,
       status: reservation.status,
       location: reservation.location,
+      pricing,
       createdAt: reservation.createdAt,
       updatedAt: reservation.updatedAt,
     };

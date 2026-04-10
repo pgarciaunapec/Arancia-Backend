@@ -4,7 +4,10 @@
 
 import { Router, type Router as ExpressRouter } from "express";
 import { ReservationController } from "../controllers/index";
-import { authMiddleware } from "../middleware/auth.middleware";
+import {
+  authMiddleware,
+  optionalAuthMiddleware,
+} from "../middleware/auth.middleware";
 import { adminMiddleware } from "../middleware/admin.middleware";
 import {
   validateYupBody,
@@ -28,6 +31,7 @@ const router: ExpressRouter = Router();
  */
 router.post(
   "/",
+  optionalAuthMiddleware,
   validateYupBody(createReservationYupSchema),
   ReservationController.create,
 );
@@ -107,6 +111,7 @@ router.get(
  */
 router.put(
   "/:id",
+  authMiddleware,
   validateYupParams(mongoIdParamYupSchema),
   validateYupBody(updateReservationYupSchema),
   ReservationController.update,
@@ -122,6 +127,13 @@ router.put(
  */
 router.post(
   "/:id/cancel",
+  authMiddleware,
+  validateYupParams(mongoIdParamYupSchema),
+  ReservationController.cancel,
+);
+router.put(
+  "/:id/cancel",
+  authMiddleware,
   validateYupParams(mongoIdParamYupSchema),
   ReservationController.cancel,
 );

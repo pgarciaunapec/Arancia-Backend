@@ -91,11 +91,11 @@ export class ReservationController {
     }
   }
 
-  static async update(req: Request, res: Response): Promise<void> {
+  static async update(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const dto: UpdateReservationRequestDTO = req.body;
-      const reservation = await ReservationService.update(id, dto);
+      const reservation = await ReservationService.update(id, dto, req.user);
       sendSuccess(res, reservation, 200, "Reservación actualizada");
     } catch (error) {
       if (error instanceof Error) {
@@ -104,10 +104,10 @@ export class ReservationController {
     }
   }
 
-  static async cancel(req: Request, res: Response): Promise<void> {
+  static async cancel(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const reservation = await ReservationService.cancel(id);
+      const reservation = await ReservationService.cancel(id, req.user);
       sendSuccess(res, reservation, 200, "Reservación cancelada");
     } catch (error) {
       if (error instanceof Error) {
