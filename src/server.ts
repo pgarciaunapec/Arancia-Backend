@@ -20,6 +20,7 @@ import paymentRoutes from "./routes/payment.routes";
 import deliveryRoutes from "./routes/delivery.routes";
 import adminUserRoutes from "./routes/admin/user.routes";
 import adminTableRoutes from "./routes/admin/table.routes";
+import adminCollectionsRoutes from "./routes/admin/collections.routes";
 import adminTableBillRoutes from "./routes/admin/tableBill.routes";
 import adminCashRegisterRoutes from "./routes/admin/cashRegister.routes";
 import adminInventoryRoutes from "./routes/admin/inventory.routes";
@@ -84,6 +85,7 @@ export const createApp = (): Application => {
   // Admin routes
   app.use("/api/admin/users", adminUserRoutes);
   app.use("/api/admin/tables", adminTableRoutes);
+  app.use("/api/admin/collections", adminCollectionsRoutes);
   app.use("/api/admin/table-bills", adminTableBillRoutes);
   app.use("/api/admin/cash-register", adminCashRegisterRoutes);
   app.use("/api/admin/inventory", adminInventoryRoutes);
