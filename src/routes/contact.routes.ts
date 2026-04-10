@@ -2,7 +2,12 @@
  * Contact Routes - Refactored
  */
 
-import { Router, Request, Response, type Router as ExpressRouter } from "express";
+import {
+  Router,
+  Request,
+  Response,
+  type Router as ExpressRouter,
+} from "express";
 import { ContactController } from "../controllers/index";
 import { EventRequest } from "../models";
 import { authMiddleware } from "../middleware/auth.middleware";
@@ -39,7 +44,16 @@ router.post(
   validateYupBody(eventQuoteYupSchema),
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const { name, email, phone, eventType, packageName, guests, preferredDate, notes } = req.body;
+      const {
+        name,
+        email,
+        phone,
+        eventType,
+        packageName,
+        guests,
+        preferredDate,
+        notes,
+      } = req.body;
 
       const eventRequest = await EventRequest.create({
         name,
@@ -78,12 +92,7 @@ router.post(
  *     security:
  *       - bearerAuth: []
  */
-router.get(
-  "/",
-  authMiddleware,
-  adminMiddleware,
-  ContactController.getAll,
-);
+router.get("/", authMiddleware, adminMiddleware, ContactController.getAll);
 
 /**
  * @swagger
@@ -93,7 +102,11 @@ router.get(
  *     tags:
  *       - Contacto
  */
-router.get("/:id", validateYupParams(mongoIdParamYupSchema), ContactController.getById);
+router.get(
+  "/:id",
+  validateYupParams(mongoIdParamYupSchema),
+  ContactController.getById,
+);
 
 /**
  * @swagger
@@ -132,4 +145,3 @@ router.delete(
 );
 
 export default router;
-
