@@ -18,11 +18,21 @@ export class MenuItemController {
    */
   static async getAll(req: Request, res: Response): Promise<void> {
     try {
-      const { category, search, available } = req.query;
+      const { category, search } = req.query;
+
+      // Parse `available` query param strictly: only 'true' or 'false' map to booleans.
+      // If the param is absent, leave as undefined so service does not filter by availability.
+      const rawAvailable = req.query.available as string | undefined;
+      let availableFlag: boolean | undefined = undefined;
+      if (typeof rawAvailable === "string") {
+        if (rawAvailable === "true") availableFlag = true;
+        else if (rawAvailable === "false") availableFlag = false;
+      }
+
       const items = await MenuItemService.getAll(
         category as string | undefined,
         search as string | undefined,
-        available === "true",
+        availableFlag,
       );
       sendSuccess(res, {
         count: items.length,
