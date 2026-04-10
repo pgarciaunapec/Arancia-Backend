@@ -97,13 +97,14 @@ export interface IOrder {
 }
 
 // Contact types
-export type ContactStatus = "unread" | "read" | "responded";
+export type ContactStatus = "new" | "read" | "responded" | "closed";
 
 export interface IContact {
   _id: Types.ObjectId;
   name: string;
   email: string;
   phone?: string;
+  subject: string;
   message: string;
   status: ContactStatus;
   createdAt: Date;

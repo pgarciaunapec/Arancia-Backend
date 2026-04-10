@@ -3,15 +3,35 @@
  */
 
 import { Router, type Router as ExpressRouter } from "express";
-import { UserController } from "../controllers/index";
+import { AuthController, UserController } from "../controllers/index";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { adminMiddleware } from "../middleware/admin.middleware";
 import {
-  validateMongoId,
-  handleValidationErrors,
-} from "../utils/index";
+  validateYupBody,
+  validateYupParams,
+} from "../middleware/yupValidation.middleware";
+import {
+  changePasswordYupSchema,
+  mongoIdParamYupSchema,
+  updateProfileYupSchema,
+} from "../schemas/yup.schemas";
+
 
 const router: ExpressRouter = Router();
+
+router.put(
+  "/profile",
+  authMiddleware,
+  validateYupBody(updateProfileYupSchema),
+  AuthController.updateProfile,
+);
+
+router.put(
+  "/password",
+  authMiddleware,
+  validateYupBody(changePasswordYupSchema),
+  AuthController.changePassword,
+);
 
 /**
  * @swagger
@@ -38,7 +58,7 @@ router.get(
  *     tags:
  *       - Usuarios
  */
-router.get("/:id", validateMongoId(), handleValidationErrors, UserController.getById);
+router.get("/:id", validateYupParams(mongoIdParamYupSchema), UserController.getById);
 
 /**
  * @swagger
@@ -54,8 +74,7 @@ router.put(
   "/:id/role",
   authMiddleware,
   adminMiddleware,
-  validateMongoId(),
-  handleValidationErrors,
+  validateYupParams(mongoIdParamYupSchema),
   UserController.updateRole,
 );
 
@@ -73,8 +92,7 @@ router.delete(
   "/:id",
   authMiddleware,
   adminMiddleware,
-  validateMongoId(),
-  handleValidationErrors,
+  validateYupParams(mongoIdParamYupSchema),
   UserController.delete,
 );
 

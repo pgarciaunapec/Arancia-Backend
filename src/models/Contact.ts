@@ -20,6 +20,12 @@ const contactSchema = new Schema<IContactDocument>(
             type: String,
             trim: true,
         },
+        subject: {
+            type: String,
+            required: [true, 'El asunto es requerido'],
+            trim: true,
+            maxlength: [140, 'El asunto no puede exceder 140 caracteres'],
+        },
         message: {
             type: String,
             required: [true, 'El mensaje es requerido'],
@@ -27,8 +33,8 @@ const contactSchema = new Schema<IContactDocument>(
         },
         status: {
             type: String,
-            enum: ['unread', 'read', 'responded'] as ContactStatus[],
-            default: 'unread',
+            enum: ['new', 'read', 'responded', 'closed'] as ContactStatus[],
+            default: 'new',
         },
     },
     {
