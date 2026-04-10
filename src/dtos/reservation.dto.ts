@@ -22,6 +22,15 @@ export interface UpdateReservationRequestDTO {
   phone?: string;
   notes?: string;
   status?: "pending" | "confirmed" | "cancelled" | "completed";
+  acceptAdditionalCharge?: boolean;
+}
+
+export interface ReservationPricingDTO {
+  coverPerGuest: number;
+  previousTotal: number;
+  newTotal: number;
+  delta: number;
+  additionalChargeApplied: boolean;
 }
 
 // Response DTOs
@@ -37,6 +46,7 @@ export interface ReservationResponseDTO {
   notes?: string;
   status: string;
   location: string;
+  pricing?: ReservationPricingDTO;
   createdAt: Date;
   updatedAt: Date;
 }

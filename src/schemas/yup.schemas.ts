@@ -149,6 +149,7 @@ export const updateReservationYupSchema = yup.object({
       "Estado inválido",
     )
     .optional(),
+  acceptAdditionalCharge: yup.boolean().optional(),
 });
 
 export const createContactYupSchema = yup.object({
