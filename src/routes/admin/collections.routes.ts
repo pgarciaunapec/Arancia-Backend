@@ -1,25 +1,104 @@
 import { Router } from "express";
+import fs from "fs";
+import path from "path";
+import multer from "multer";
+import rateLimit from "express-rate-limit";
 import * as controller from "../../controllers/admin.collections.controller";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
 
-const router = Router();
+const typedRouter: import("express").Router = Router();
+
+const uploadDir = path.resolve(process.cwd(), "uploads", "admin");
+fs.mkdirSync(uploadDir, { recursive: true });
+
+const assetUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, uploadDir),
+    filename: (_req, file, cb) => {
+      const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+      cb(null, `${Date.now()}-${safe}`);
+    },
+  }),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowed = [
+      "text/csv",
+      "application/json",
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+      "application/pdf",
+    ];
+    if (!allowed.includes(file.mimetype)) {
+      cb(new Error("Tipo de archivo no permitido"));
+      return;
+    }
+    cb(null, true);
+  },
+});
+
+const importUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ["text/csv", "application/json"];
+    if (!allowed.includes(file.mimetype)) {
+      cb(new Error("Tipo de archivo no permitido"));
+      return;
+    }
+    cb(null, true);
+  },
+});
+
+const listLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const importLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Protect all admin collection routes
-router.use(authMiddleware, requireRole(["admin"]));
+typedRouter.use(authMiddleware, requireRole(["admin"]));
 
 // List available collections and counts
-router.get("/", controller.listCollections);
+typedRouter.get("/", controller.listCollections);
+
+// Collection UI configuration
+typedRouter.get("/config/:collection", controller.getConfig);
+typedRouter.put("/config/:collection", controller.updateConfig);
+
+// Bulk and file operations
+typedRouter.post("/:collection/bulk", controller.bulkAction);
+typedRouter.post(
+  "/:collection/import",
+  importLimiter,
+  importUpload.single("file"),
+  controller.importRecords,
+);
+typedRouter.get("/:collection/export", controller.exportRecords);
+typedRouter.post(
+  "/:collection/:id/assets",
+  assetUpload.single("file"),
+  controller.uploadAsset,
+);
 
 // Records CRUD
-router.get("/:collection", controller.listRecords);
-router.get("/:collection/:id", controller.getRecord);
-router.post("/:collection", controller.createRecord);
-router.put("/:collection/:id", controller.updateRecord);
-router.delete("/:collection/:id", controller.deleteRecord);
+typedRouter.get("/:collection", listLimiter, controller.listRecords);
+typedRouter.get("/:collection/:id", controller.getRecord);
+typedRouter.post("/:collection", controller.createRecord);
+typedRouter.put("/:collection/:id", controller.updateRecord);
+typedRouter.delete("/:collection/:id", controller.deleteRecord);
 
-// Config for collection UI
-router.get("/config/:collection", controller.getConfig);
-router.put("/config/:collection", controller.updateConfig);
-
-export default router;
+export default typedRouter;
