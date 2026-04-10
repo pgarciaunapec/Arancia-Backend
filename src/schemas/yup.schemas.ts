@@ -171,6 +171,36 @@ export const createContactYupSchema = yup.object({
     .max(2000, "El mensaje no puede exceder 2000 caracteres"),
 });
 
+export const eventQuoteYupSchema = yup.object({
+  name: yup.string().trim().required("El nombre es requerido"),
+  email: yup
+    .string()
+    .trim()
+    .email("Email inválido")
+    .required("El email es requerido"),
+  phone: yup.string().trim().required("El teléfono es requerido"),
+  eventType: yup
+    .string()
+    .oneOf(["social", "corporativo", "privado", "otro"], "Tipo de evento inválido")
+    .required("El tipo de evento es requerido"),
+  packageName: yup
+    .string()
+    .oneOf(["Esencial", "Premium", "Elite", ""], "Paquete inválido")
+    .optional(),
+  guests: yup
+    .number()
+    .transform((value, originalValue) => Number(originalValue))
+    .typeError("El número de invitados es inválido")
+    .min(1, "El número de invitados es inválido")
+    .required("El número de invitados es requerido"),
+  preferredDate: yup.string().trim().optional(),
+  notes: yup
+    .string()
+    .trim()
+    .max(1000, "Las notas no pueden exceder 1000 caracteres")
+    .optional(),
+});
+
 export const mongoIdParamYupSchema = yup.object({
   id: yup
     .string()
