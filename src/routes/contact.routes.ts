@@ -7,10 +7,13 @@ import { ContactController } from "../controllers/index";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { adminMiddleware } from "../middleware/admin.middleware";
 import {
-  validateCreateContact,
-  validateMongoId,
-  handleValidationErrors,
-} from "../utils/index";
+  validateYupBody,
+  validateYupParams,
+} from "../middleware/yupValidation.middleware";
+import {
+  createContactYupSchema,
+  mongoIdParamYupSchema,
+} from "../schemas/yup.schemas";
 
 const router: ExpressRouter = Router();
 
@@ -24,8 +27,7 @@ const router: ExpressRouter = Router();
  */
 router.post(
   "/",
-  validateCreateContact(),
-  handleValidationErrors,
+  validateYupBody(createContactYupSchema),
   ContactController.create,
 );
 
@@ -54,7 +56,7 @@ router.get(
  *     tags:
  *       - Contacto
  */
-router.get("/:id", validateMongoId(), handleValidationErrors, ContactController.getById);
+router.get("/:id", validateYupParams(mongoIdParamYupSchema), ContactController.getById);
 
 /**
  * @swagger
@@ -70,8 +72,7 @@ router.put(
   "/:id/status",
   authMiddleware,
   adminMiddleware,
-  validateMongoId(),
-  handleValidationErrors,
+  validateYupParams(mongoIdParamYupSchema),
   ContactController.updateStatus,
 );
 
@@ -89,8 +90,7 @@ router.delete(
   "/:id",
   authMiddleware,
   adminMiddleware,
-  validateMongoId(),
-  handleValidationErrors,
+  validateYupParams(mongoIdParamYupSchema),
   ContactController.delete,
 );
 

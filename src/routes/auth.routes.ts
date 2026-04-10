@@ -2,13 +2,13 @@ import { Router, type Router as ExpressRouter } from "express";
 import rateLimit from "express-rate-limit";
 import { AuthController } from "../controllers/index";
 import { authMiddleware } from "../middleware/auth.middleware";
+import { validateYupBody } from "../middleware/yupValidation.middleware";
 import {
-  validateRegister,
-  validateLogin,
-  validateChangePassword,
-  validateUpdateProfile,
-  handleValidationErrors,
-} from "../utils/index";
+  changePasswordYupSchema,
+  loginYupSchema,
+  registerYupSchema,
+  updateProfileYupSchema,
+} from "../schemas/yup.schemas";
 
 const router: ExpressRouter = Router();
 
@@ -31,8 +31,7 @@ const authLimiter = rateLimit({
 router.post(
   "/register",
   authLimiter,
-  validateRegister(),
-  handleValidationErrors,
+  validateYupBody(registerYupSchema),
   AuthController.register,
 );
 
@@ -47,8 +46,7 @@ router.post(
 router.post(
   "/login",
   authLimiter,
-  validateLogin(),
-  handleValidationErrors,
+  validateYupBody(loginYupSchema),
   AuthController.login,
 );
 
@@ -77,8 +75,7 @@ router.get("/me", authMiddleware, AuthController.getCurrentUser);
 router.put(
   "/profile",
   authMiddleware,
-  validateUpdateProfile(),
-  handleValidationErrors,
+  validateYupBody(updateProfileYupSchema),
   AuthController.updateProfile,
 );
 
@@ -95,8 +92,7 @@ router.put(
 router.post(
   "/change-password",
   authMiddleware,
-  validateChangePassword(),
-  handleValidationErrors,
+  validateYupBody(changePasswordYupSchema),
   AuthController.changePassword,
 );
 

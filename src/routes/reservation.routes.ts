@@ -7,10 +7,14 @@ import { ReservationController } from "../controllers/index";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { adminMiddleware } from "../middleware/admin.middleware";
 import {
-  validateCreateReservation,
-  validateMongoId,
-  handleValidationErrors,
-} from "../utils/index";
+  validateYupBody,
+  validateYupParams,
+} from "../middleware/yupValidation.middleware";
+import {
+  createReservationYupSchema,
+  mongoIdParamYupSchema,
+  updateReservationYupSchema,
+} from "../schemas/yup.schemas";
 
 const router: ExpressRouter = Router();
 
@@ -24,8 +28,7 @@ const router: ExpressRouter = Router();
  */
 router.post(
   "/",
-  validateCreateReservation(),
-  handleValidationErrors,
+  validateYupBody(createReservationYupSchema),
   ReservationController.create,
 );
 
@@ -40,6 +43,7 @@ router.post(
  *       - bearerAuth: []
  */
 router.get("/my-reservations", authMiddleware, ReservationController.getUserReservations);
+router.get("/my", authMiddleware, ReservationController.getUserReservations);
 
 /**
  * @swagger
@@ -49,7 +53,7 @@ router.get("/my-reservations", authMiddleware, ReservationController.getUserRese
  *     tags:
  *       - Reservaciones
  */
-router.get("/:id", validateMongoId(), handleValidationErrors, ReservationController.getById);
+router.get("/:id", validateYupParams(mongoIdParamYupSchema), ReservationController.getById);
 
 /**
  * @swagger
@@ -95,8 +99,8 @@ router.get(
  */
 router.put(
   "/:id",
-  validateMongoId(),
-  handleValidationErrors,
+  validateYupParams(mongoIdParamYupSchema),
+  validateYupBody(updateReservationYupSchema),
   ReservationController.update,
 );
 
@@ -110,8 +114,7 @@ router.put(
  */
 router.post(
   "/:id/cancel",
-  validateMongoId(),
-  handleValidationErrors,
+  validateYupParams(mongoIdParamYupSchema),
   ReservationController.cancel,
 );
 
@@ -129,8 +132,7 @@ router.post(
   "/admin/:id/confirm",
   authMiddleware,
   adminMiddleware,
-  validateMongoId(),
-  handleValidationErrors,
+  validateYupParams(mongoIdParamYupSchema),
   ReservationController.confirm,
 );
 
