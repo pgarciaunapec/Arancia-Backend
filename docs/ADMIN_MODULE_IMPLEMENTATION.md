@@ -68,6 +68,14 @@ npx vitest run --reporter verbose
 npx vitest run --coverage
 ```
 
+## CI Example
+```bash
+pnpm install --frozen-lockfile
+pnpm exec tsc --noEmit
+pnpm test
+pnpm test:coverage
+```
+
 ## Coverage Gate
 Configured in `vitest.config.ts` for critical backend admin module boundaries.
 
