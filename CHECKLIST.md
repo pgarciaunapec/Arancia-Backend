@@ -20,6 +20,17 @@
 - [x] Tests exitosos
 
 ## Cierre de tarea
-- [ ] Commit Task 1
+- [x] Commit Task 1
+- [x] Merge a `dev`
+- [x] Borrado de rama local/remota Task 1
+
+## Task 2 (Soporte backend para Eventos)
+- [x] Endpoint `POST /contact/event-quote`
+- [x] Validación Yup de event quote
+- [x] Build exitoso
+- [x] Tests exitosos
+
+## Cierre de tarea
+- [ ] Commit Task 2
 - [ ] Merge a `dev`
-- [ ] Borrado de rama local/remota Task 1
+- [ ] Borrado de rama local/remota Task 2

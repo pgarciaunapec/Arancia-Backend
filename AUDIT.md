@@ -8,7 +8,7 @@
 
 ## Task 1 - Validacion backend con Yup
 ### Estado
-- En progreso (implementacion y pruebas locales completas)
+- Completada y mergeada a `dev`
 
 ### Cambios clave
 - Dependencia `yup` agregada
@@ -34,3 +34,22 @@
 
 ## Riesgos observados
 - Existen reglas antiguas con `express-validator` en rutas no migradas. Convivencia es funcional, pero conviene consolidar en siguiente iteracion.
+
+## Task 2 - Soporte backend para modales de Eventos
+### Rama de trabajo
+- `task/2/amazon-ui-tracking`
+
+### Estado
+- Implementacion completada en rama, con build/tests exitosos
+
+### Cambios clave
+- Se habilita endpoint de cotizacion de eventos:
+  - `POST /api/contact/event-quote`
+  - Archivo: `src/routes/contact.routes.ts`
+- Validacion Yup para event quote:
+  - `src/schemas/yup.schemas.ts`
+- Payload alineado con modal del frontend (`eventType`, `packageName`, `guests`, `preferredDate`, `notes`)
+
+### Verificacion
+- Build: OK (`pnpm run build`)
+- Tests: OK (`pnpm run test`)
