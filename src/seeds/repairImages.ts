@@ -27,7 +27,8 @@ const downloadImage = async (
       contentType: res.headers["content-type"] || "application/octet-stream",
     };
   } catch (err) {
-    console.error("Download failed for", url, err?.message || err);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Download failed for", url, message);
     return null;
   }
 };
@@ -73,6 +74,9 @@ const repair = async () => {
 
       // check GridFS
       const db = mongoose.connection.db;
+      if (!db) {
+        throw new Error("Database connection is not available");
+      }
       const gridfs = await db
         .collection("images.files")
         .findOne({ _id: new mongoose.Types.ObjectId(imageId) });

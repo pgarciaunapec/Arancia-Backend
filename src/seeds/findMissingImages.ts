@@ -20,6 +20,9 @@ const run = async () => {
     const missing: Array<{ name: string; image: string }> = [];
 
     const db = mongoose.connection.db;
+    if (!db) {
+      throw new Error("Database connection is not available");
+    }
 
     for (const it of items) {
       const img = it.image;
