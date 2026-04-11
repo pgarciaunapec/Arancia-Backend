@@ -60,7 +60,16 @@ export class AuthController {
       );
     } catch (error) {
       if (error instanceof Error) {
-        sendError(res, error.message, 401);
+        const isMissingFields = error.message.includes(
+          "Por favor, completa todos los campos.",
+        );
+        const knownMessage =
+          isMissingFields ||
+          error.message.includes("El correo o la contraseña no coinciden.")
+            ? error.message
+            : "El correo o la contraseña no coinciden.";
+
+        sendError(res, knownMessage, isMissingFields ? 400 : 401);
       }
     }
   }
