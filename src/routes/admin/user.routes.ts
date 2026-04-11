@@ -6,7 +6,7 @@ import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
 import { AuthRequest } from "../../types/index";
 
-const router: import('express').Router = Router();
+const router: import("express").Router = Router();
 
 // @route   GET /api/admin/users
 // @desc    List users with search, filters, pagination
@@ -80,13 +80,8 @@ router.post(
   authMiddleware,
   requireRole(["admin"]),
   [
-    body("name")
-      .trim()
-      .notEmpty()
-      .withMessage("El nombre es obligatorio"),
-    body("email")
-      .isEmail()
-      .withMessage("El correo electrónico no es válido"),
+    body("name").trim().notEmpty().withMessage("El nombre es obligatorio"),
+    body("email").isEmail().withMessage("El correo electrónico no es válido"),
     body("password")
       .isLength({ min: 6 })
       .withMessage("La contraseña debe tener al menos 6 caracteres"),
