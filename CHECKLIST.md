@@ -77,3 +77,8 @@
 - [x] Sincronizacion de delivery al pasar a `shipped` y `delivered`
 - [x] Build exitoso
 - [x] Commit + merge --no-ff
+
+### Task 3 (Filtros modernos + accesibilidad)
+- [x] Sin cambios de backend requeridos
+- [x] Contrato de `/api/admin/users` validado para filtros avanzados de frontend
+- [x] Commit + merge --no-ff (documentacion)

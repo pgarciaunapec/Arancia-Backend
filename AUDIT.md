@@ -153,3 +153,14 @@
 
 #### Verificacion
 - Build: OK (`pnpm run build`)
+
+### Task 3 - Modernizacion de filtros y UI de usuarios
+#### Rama
+- `feature/task3-admin-filters-toolbar`
+
+#### Cambios clave
+- Sin cambios de API requeridos en backend para Task 3.
+- Se valida compatibilidad del endpoint de usuarios (`/api/admin/users`) con filtros de frontend por rol/estado/fecha ya que retorna `role`, `isVip` y `createdAt`.
+
+#### Verificacion
+- Backend sin cambios funcionales de codigo para esta tarea.
