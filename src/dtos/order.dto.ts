@@ -52,6 +52,8 @@ export interface OrderItemResponseDTO {
   name: string;
   quantity: number;
   price: number;
+  description?: string;
+  ingredients?: string[];
 }
 
 export interface OrderListResponseDTO {

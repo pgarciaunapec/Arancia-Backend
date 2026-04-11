@@ -25,6 +25,11 @@ const menuItemSchema = new Schema<IMenuItemDocument>(
             type: [String],
             default: [],
         },
+        description: {
+            type: String,
+            trim: true,
+            maxlength: [600, 'La descripción no puede exceder 600 caracteres'],
+        },
         image: {
             type: String,
             required: [true, 'La imagen es requerida'],
