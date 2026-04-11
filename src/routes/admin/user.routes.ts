@@ -1,4 +1,5 @@
 import { Router, Response } from "express";
+import bcrypt from "bcryptjs";
 import { body, query, validationResult } from "express-validator";
 import { User, Order } from "../../models/index";
 import { authMiddleware } from "../../middleware/auth.middleware";
@@ -67,6 +68,77 @@ router.get(
     } catch (error) {
       console.error("Admin get users error:", error);
       res.status(500).json({ error: "Error al obtener usuarios" });
+    }
+  },
+);
+
+// @route   POST /api/admin/users
+// @desc    Create user and assign role
+// @access  Admin
+router.post(
+  "/",
+  authMiddleware,
+  requireRole(["admin"]),
+  [
+    body("name")
+      .trim()
+      .notEmpty()
+      .withMessage("El nombre es obligatorio"),
+    body("email")
+      .isEmail()
+      .withMessage("El correo electrónico no es válido"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("La contraseña debe tener al menos 6 caracteres"),
+    body("role")
+      .optional()
+      .isIn(["customer", "staff", "admin"])
+      .withMessage("Rol inválido"),
+    body("phone").optional().trim(),
+    body("address").optional().trim(),
+  ],
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() });
+        return;
+      }
+
+      const {
+        name,
+        email,
+        password,
+        role = "customer",
+        phone,
+        address,
+      } = req.body;
+      const normalizedEmail = String(email).trim().toLowerCase();
+
+      const existing = await User.findOne({ email: normalizedEmail });
+      if (existing) {
+        res.status(409).json({ error: "Ya existe un usuario con ese correo" });
+        return;
+      }
+
+      const passwordHash = await bcrypt.hash(String(password), 10);
+
+      const created = await User.create({
+        name: String(name).trim(),
+        email: normalizedEmail,
+        password: passwordHash,
+        role,
+        phone,
+        address,
+        isActive: true,
+      });
+
+      const createdUser = await User.findById(created._id).select("-password");
+
+      res.status(201).json({ success: true, data: createdUser });
+    } catch (error) {
+      console.error("Admin create user error:", error);
+      res.status(500).json({ error: "Error al crear usuario" });
     }
   },
 );

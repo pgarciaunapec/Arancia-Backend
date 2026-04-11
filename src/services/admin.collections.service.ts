@@ -27,6 +27,22 @@ export type OnConflictMode = "skip" | "replace" | "merge";
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_LIMIT = 100;
 
+const MENU_FIELD_LABELS: Record<string, string> = {
+  description: "Descripción del menú",
+  ingredients: "Ingredientes",
+};
+
+const isMenuCollection = (collection: string): boolean =>
+  collection.toLowerCase().includes("menu");
+
+const resolveFieldLabel = (collection: string, fieldName: string): string => {
+  if (isMenuCollection(collection) && MENU_FIELD_LABELS[fieldName]) {
+    return MENU_FIELD_LABELS[fieldName];
+  }
+
+  return fieldName;
+};
+
 const getDb = () => {
   const db = mongoose.connection.db;
   if (!db) {
@@ -316,14 +332,59 @@ export const sanitizePayloadByConfig = (
 export const getOrCreateAdminConfig = async (
   collection: string,
 ): Promise<IAdminConfigDocument> => {
-  let config = await AdminConfig.findOne({ collection });
-  if (config) return config;
-
   const sample = await getDb().collection(collection).findOne({});
+
+  let config = await AdminConfig.findOne({ collection });
+  if (config) {
+    const existingConfig = config;
+
+    if (sample) {
+      let changed = false;
+      const existingFieldMap = new Map(
+        existingConfig.fields.map((field) => [field.name, field]),
+      );
+
+      Object.keys(sample).forEach((name) => {
+        const existingField = existingFieldMap.get(name);
+
+        if (!existingField) {
+          existingConfig.fields.push({
+            name,
+            label: resolveFieldLabel(collection, name),
+            visible: true,
+            editable: name !== "_id",
+            type: inferFieldType((sample as Record<string, unknown>)[name]),
+            order: existingConfig.fields.length,
+          });
+          changed = true;
+          return;
+        }
+
+        const suggestedLabel = resolveFieldLabel(collection, name);
+        if (
+          existingField.label === undefined ||
+          existingField.label === name ||
+          existingField.label === ""
+        ) {
+          if (existingField.label !== suggestedLabel) {
+            existingField.label = suggestedLabel;
+            changed = true;
+          }
+        }
+      });
+
+      if (changed) {
+        await existingConfig.save();
+      }
+    }
+
+    return existingConfig;
+  }
+
   const fields = sample
     ? Object.keys(sample).map((name, index) => ({
         name,
-        label: name,
+        label: resolveFieldLabel(collection, name),
         visible: true,
         editable: name !== "_id",
         type: inferFieldType(sample[name]),
