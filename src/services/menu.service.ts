@@ -67,6 +67,7 @@ export class MenuItemService {
       category: dto.category,
       price: dto.price,
       ingredients: dto.ingredients,
+      description: dto.description,
       image: dto.image,
       available: dto.available !== false,
     });
@@ -133,6 +134,7 @@ export class MenuItemService {
       category: item.category,
       price: item.price,
       ingredients: item.ingredients,
+      description: item.description,
       image: item.image,
       available: item.available,
       createdAt: item.createdAt,

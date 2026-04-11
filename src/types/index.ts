@@ -27,6 +27,7 @@ export interface IMenuItem {
   category: string;
   price: number;
   ingredients: string[];
+  description?: string;
   image: string;
   available: boolean;
   createdAt: Date;
@@ -72,6 +73,8 @@ export interface IOrderItem {
   name: string;
   quantity: number;
   price: number;
+  description?: string;
+  ingredients?: string[];
 }
 
 export interface IShippingAddress {

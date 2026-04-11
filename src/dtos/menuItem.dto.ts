@@ -8,6 +8,7 @@ export interface CreateMenuItemRequestDTO {
   category: string;
   price: number;
   ingredients: string[];
+  description?: string;
   image: string;
   available?: boolean;
 }
@@ -17,6 +18,7 @@ export interface UpdateMenuItemRequestDTO {
   category?: string;
   price?: number;
   ingredients?: string[];
+  description?: string;
   image?: string;
   available?: boolean;
 }
@@ -28,6 +30,7 @@ export interface MenuItemResponseDTO {
   category: string;
   price: number;
   ingredients: string[];
+  description?: string;
   image: string;
   available: boolean;
   createdAt: Date;

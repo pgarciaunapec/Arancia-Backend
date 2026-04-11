@@ -9,7 +9,7 @@ const router: import('express').Router = Router();
 // Helper to get or create cart
 const getCartResponse = async (userId: string) => {
     let cart = await Order.findOne({ user: userId, status: 'cart' })
-        .populate('items.menuItem', 'image name price');
+        .populate('items.menuItem', 'image name price category ingredients description');
 
     if (!cart) {
         cart = await Order.create({ user: userId, status: 'cart', items: [] });
@@ -26,7 +26,12 @@ const getCartResponse = async (userId: string) => {
                 menuItem: item.menuItem._id.toString(),
                 image: item.menuItem.image,
                 name: item.menuItem.name,
-                price: item.menuItem.price
+                price: item.menuItem.price,
+                category: item.menuItem.category,
+                ingredients: Array.isArray(item.ingredients) && item.ingredients.length
+                    ? item.ingredients
+                    : item.menuItem.ingredients,
+                description: item.description || item.menuItem.description,
             };
         }
         return item;
@@ -102,6 +107,8 @@ router.post(
                         name: menuItem.name,
                         quantity,
                         price: menuItem.price,
+                        description: menuItem.description,
+                        ingredients: menuItem.ingredients,
                     });
                 }
             }
@@ -175,6 +182,8 @@ router.post(
                     name: menuItem.name,
                     quantity,
                     price: menuItem.price,
+                    description: menuItem.description,
+                    ingredients: menuItem.ingredients,
                 });
             }
 

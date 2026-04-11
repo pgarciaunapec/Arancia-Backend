@@ -58,6 +58,7 @@ export const validateCreateMenuItem = (): ValidationChain[] => [
   body("ingredients")
     .isArray()
     .withMessage("Los ingredientes deben ser un array"),
+  body("description").optional().trim().isLength({ max: 600 }),
   body("image").trim().notEmpty().withMessage("La imagen es requerida"),
   body("available").optional().isBoolean(),
 ];

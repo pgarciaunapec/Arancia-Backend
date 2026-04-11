@@ -41,6 +41,10 @@ export class OrderService {
         name: menuItem.name,
         quantity: item.quantity,
         price: menuItem.price,
+        description: menuItem.description,
+        ingredients: Array.isArray(menuItem.ingredients)
+          ? menuItem.ingredients
+          : [],
       };
     });
 

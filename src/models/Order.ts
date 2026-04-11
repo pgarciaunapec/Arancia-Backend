@@ -23,6 +23,14 @@ const orderItemSchema = new Schema(
       type: Number,
       required: true,
     },
+    description: {
+      type: String,
+      trim: true,
+    },
+    ingredients: {
+      type: [String],
+      default: [],
+    },
   },
   { _id: false },
 );
