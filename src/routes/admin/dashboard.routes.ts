@@ -29,16 +29,26 @@ router.get(
 
       const [
         totalUsers,
+        newUsersToday,
         totalOrders,
+        activeOrders,
         pendingOrders,
         todayOrders,
         todayReservations,
+        totalRevenue,
         todayRevenue,
         activeDeliveries,
         tables,
       ] = await Promise.all([
         User.countDocuments({ isActive: { $ne: false } }),
+        User.countDocuments({
+          isActive: { $ne: false },
+          createdAt: { $gte: today, $lte: endOfDay },
+        }),
         Order.countDocuments({ status: { $ne: "cart" } }),
+        Order.countDocuments({
+          status: { $in: ["pending", "confirmed", "preparing", "ready"] },
+        }),
         Order.countDocuments({ status: "pending" }),
         Order.countDocuments({
           status: { $ne: "cart" },
@@ -47,6 +57,14 @@ router.get(
         Reservation.countDocuments({
           date: { $gte: today, $lte: endOfDay },
         }),
+        Payment.aggregate([
+          {
+            $match: {
+              status: "completed",
+            },
+          },
+          { $group: { _id: null, total: { $sum: "$amount" } } },
+        ]),
         Payment.aggregate([
           {
             $match: {
@@ -71,10 +89,13 @@ router.get(
         success: true,
         data: {
           totalUsers,
+          newUsersToday,
           totalOrders,
+          activeOrders,
           pendingOrders,
           todayOrders,
           todayReservations,
+          totalRevenue: totalRevenue[0]?.total || 0,
           todayRevenue: todayRevenue[0]?.total || 0,
           activeDeliveries,
           occupiedTables,

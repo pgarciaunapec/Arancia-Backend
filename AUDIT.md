@@ -106,3 +106,24 @@
 ## Observaciones de cierre Git
 - Cierres realizados con merge `--no-ff` hacia `dev`.
 - Intentos de borrado remoto de rama devolvieron `remote ref does not exist` cuando la rama no habia sido publicada; limpieza local completada.
+
+## Ciclo 2026-04-11 - Backlog Admin de Ejecucion
+
+### Task 1 - Dashboard real y metricas financieras globales
+#### Rama
+- `feature/task1-dashboard-currency`
+
+#### Cambios clave
+- Endpoint admin de dashboard ampliado con metricas reales de MongoDB:
+  - `newUsersToday`
+  - `activeOrders`
+  - `totalRevenue`
+  - `todayRevenue`
+- Aggregaciones de pagos completados incorporadas para ventas diarias y acumuladas.
+- Conteo de pedidos activos conectado a estados operativos (sin mockdata).
+
+#### Archivos principales
+- `src/routes/admin/dashboard.routes.ts`
+
+#### Verificacion
+- Build: OK (`pnpm run build`)

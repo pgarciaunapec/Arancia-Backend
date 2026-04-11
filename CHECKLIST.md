@@ -58,3 +58,13 @@
 ## Nota operativa
 - [x] Limpieza local de ramas completada
 - [x] Intento de borrado remoto ejecutado (si la rama no fue publicada, Git devolvio `remote ref does not exist`)
+
+## Ciclo 2026-04-11 - Backlog Admin
+
+### Task 1 (Dashboard real)
+- [x] Endpoint `/api/admin/dashboard` ampliado con metricas reales
+- [x] Agregado `newUsersToday`
+- [x] Agregado `activeOrders`
+- [x] Agregado `totalRevenue`
+- [x] Build exitoso
+- [x] Commit + merge --no-ff
