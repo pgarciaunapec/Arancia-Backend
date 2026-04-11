@@ -66,18 +66,26 @@ export class AuthService {
     user: UserResponseDTO;
     token: string;
   }> {
-    // Find user
-    const user = await User.findOne({
-      email: dto.email.toLowerCase(),
-    });
-    if (!user) {
-      throw new Error("Credenciales inválidas");
+    const email = dto.email?.trim().toLowerCase();
+    const password = dto.password;
+
+    if (!email || !password) {
+      throw new Error("Por favor, completa todos los campos.");
     }
 
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+    // Password has select:false in schema, so it must be explicitly selected.
+    const user = await User.findOne({
+      email,
+      isActive: { $ne: false },
+    }).select("+password");
+
+    if (!user?.password) {
+      throw new Error("El correo o la contraseña no coinciden.");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new Error("Credenciales inválidas");
+      throw new Error("El correo o la contraseña no coinciden.");
     }
 
     // Generate token
