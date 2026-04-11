@@ -14,9 +14,14 @@ import { AuthRequest } from "../types/index";
 export class ReservationController {
   static async create(req: Request, res: Response): Promise<void> {
     try {
+      const actor = (req as AuthRequest).user;
+      if (!actor) {
+        sendError(res, "Debes iniciar sesión para reservar.", 401);
+        return;
+      }
+
       const dto: CreateReservationRequestDTO = req.body;
-      const userId = (req as AuthRequest).user?.id;
-      const reservation = await ReservationService.create(dto, userId);
+      const reservation = await ReservationService.create(dto, actor.id);
       sendSuccess(res, reservation, 201, "Reservación creada");
     } catch (error) {
       if (error instanceof Error) {
