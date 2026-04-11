@@ -4,10 +4,7 @@
 
 import { Router, type Router as ExpressRouter } from "express";
 import { ReservationController } from "../controllers/index";
-import {
-  authMiddleware,
-  optionalAuthMiddleware,
-} from "../middleware/auth.middleware";
+import { authMiddleware } from "../middleware/auth.middleware";
 import { adminMiddleware } from "../middleware/admin.middleware";
 import {
   validateYupBody,
@@ -31,7 +28,7 @@ const router: ExpressRouter = Router();
  */
 router.post(
   "/",
-  optionalAuthMiddleware,
+  authMiddleware,
   validateYupBody(createReservationYupSchema),
   ReservationController.create,
 );
