@@ -4,8 +4,10 @@
  */
 
 import { Order } from "../models/Order";
+import { DeliveryOrder } from "../models/DeliveryOrder";
 import { MenuItem } from "../models/MenuItem";
-import { User } from "../models/User";
+import { Notification } from "../models/Notification";
+import { DeliveryService } from "./delivery.service";
 import {
   CreateOrderRequestDTO,
   OrderResponseDTO,
@@ -116,14 +118,61 @@ export class OrderService {
     id: string,
     dto: UpdateOrderStatusRequestDTO,
   ): Promise<OrderResponseDTO> {
-    const order = await Order.findByIdAndUpdate(
-      id,
-      { status: dto.status },
-      { new: true, runValidators: true },
-    );
+    const order = await Order.findById(id);
 
     if (!order) {
       throw new Error("Orden no encontrada");
+    }
+
+    const previousStatus = order.status;
+    order.status = dto.status;
+    await order.save();
+
+    if (dto.status === "shipped" && previousStatus !== "shipped") {
+      const orderCode = order._id.toString().slice(-8).toUpperCase();
+
+      if (order.isDelivery && order.shippingAddress) {
+        const existingDelivery = await DeliveryOrder.findOne({ order: order._id });
+
+        if (existingDelivery) {
+          await DeliveryService.updateStatus(
+            existingDelivery._id.toString(),
+            "in_transit",
+          );
+        } else {
+          const createdDelivery = await DeliveryService.createFromOrder(
+            order._id.toString(),
+            String(order.user),
+            order.shippingAddress,
+          );
+
+          await DeliveryService.updateStatus(
+            createdDelivery._id.toString(),
+            "in_transit",
+          );
+        }
+      }
+
+      await Notification.create({
+        user: order.user,
+        order: order._id,
+        type: "order_status",
+        title: "Tu pedido fue enviado",
+        message: `Tu pedido #${orderCode} salió y va en camino.`,
+        metadata: {
+          status: dto.status,
+        },
+      });
+    }
+
+    if (dto.status === "delivered") {
+      await DeliveryOrder.findOneAndUpdate(
+        { order: order._id },
+        {
+          status: "delivered",
+          deliveredAt: new Date(),
+        },
+      );
     }
 
     return this.mapToResponseDTO(order);

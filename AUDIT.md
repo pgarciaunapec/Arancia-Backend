@@ -127,3 +127,29 @@
 
 #### Verificacion
 - Build: OK (`pnpm run build`)
+
+### Task 2 - Sincronizacion de pedidos y notificaciones en tiempo real
+#### Rama
+- `feature/task2-orders-realtime-notifications`
+
+#### Cambios clave
+- Estado de orden `shipped` agregado a modelo, tipos, DTOs y documentacion swagger.
+- Endpoint de notificaciones persistidas agregado (`/api/notifications`) con lectura de no leidas y marcado individual/global.
+- Cambio de estado de orden centralizado en `OrderService` con efectos de dominio:
+  - actualizacion de delivery a `in_transit` al pasar a `shipped`
+  - notificacion inmediata al usuario al enviarse el pedido
+  - cierre de delivery al marcar `delivered`
+- Endpoint admin de cambio de estado conectado a `OrderService` para no saltar reglas ni eventos.
+
+#### Archivos principales
+- `src/models/Notification.ts`
+- `src/routes/notification.routes.ts`
+- `src/services/order.service.ts`
+- `src/models/Order.ts`
+- `src/dtos/order.dto.ts`
+- `src/types/index.ts`
+- `src/routes/admin/order.routes.ts`
+- `src/server.ts`
+
+#### Verificacion
+- Build: OK (`pnpm run build`)

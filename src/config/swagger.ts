@@ -75,7 +75,9 @@ const options = {
               enum: [
                 "pending",
                 "confirmed",
-                "delivering",
+                "preparing",
+                "ready",
+                "shipped",
                 "delivered",
                 "cancelled",
               ],

@@ -27,6 +27,7 @@ export interface UpdateOrderStatusRequestDTO {
     | "confirmed"
     | "preparing"
     | "ready"
+    | "shipped"
     | "delivered"
     | "cancelled";
 }

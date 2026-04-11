@@ -68,3 +68,12 @@
 - [x] Agregado `totalRevenue`
 - [x] Build exitoso
 - [x] Commit + merge --no-ff
+
+### Task 2 (Pedidos + notificaciones en tiempo real)
+- [x] Estado `shipped` agregado en modelo/tipos/DTO
+- [x] Endpoint `/api/notifications` implementado con persistencia MongoDB
+- [x] Actualizacion de estado en `OrderService` con eventos de negocio
+- [x] Envio de notificacion al usuario al pasar a `shipped`
+- [x] Sincronizacion de delivery al pasar a `shipped` y `delivered`
+- [x] Build exitoso
+- [x] Commit + merge --no-ff
