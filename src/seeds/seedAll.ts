@@ -1,9 +1,15 @@
 import { seedMenu } from "./menuSeed";
 import { migrateImages } from "./migrateImages";
+import { seedAdminUser } from "./adminUserSeed";
 
 const runAll = async () => {
   try {
-    console.log("🔁 Ejecutando seed completo: menu -> migrar imágenes");
+    console.log(
+      "🔁 Ejecutando seed completo: admin test user -> menu -> migrar imágenes",
+    );
+
+    await seedAdminUser();
+    console.log("✅ Admin test user listo");
 
     await seedMenu();
     console.log("✅ Menu seed completado");
