@@ -55,20 +55,46 @@ router.post(
         notes,
       } = req.body;
 
+      const guestsCount = Number(guests);
+      if (!Number.isInteger(guestsCount) || guestsCount < 1) {
+        sendError(res, "El número de invitados es inválido", 400);
+        return;
+      }
+
+      const parsedPreferredDate = preferredDate
+        ? new Date(preferredDate)
+        : undefined;
+
+      if (
+        preferredDate &&
+        (!parsedPreferredDate || Number.isNaN(parsedPreferredDate.getTime()))
+      ) {
+        sendError(res, "La fecha preferida no tiene un formato válido", 400);
+        return;
+      }
+
       const eventRequest = await EventRequest.create({
-        name,
-        email,
-        phone,
+        name: String(name).trim(),
+        email: String(email).trim().toLowerCase(),
+        phone: String(phone).trim(),
         eventType,
-        packageName: packageName || undefined,
-        guests,
-        preferredDate: preferredDate ? new Date(preferredDate) : undefined,
-        notes,
+        packageName:
+          typeof packageName === "string" && packageName.trim()
+            ? packageName.trim()
+            : undefined,
+        guests: guestsCount,
+        preferredDate: parsedPreferredDate,
+        notes:
+          typeof notes === "string" && notes.trim() ? notes.trim() : undefined,
       });
 
       sendSuccess(
         res,
-        eventRequest,
+        {
+          _id: eventRequest._id,
+          status: eventRequest.status,
+          createdAt: eventRequest.createdAt,
+        },
         201,
         "Solicitud de cotización recibida. Te contactaremos pronto.",
       );
