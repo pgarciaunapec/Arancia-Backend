@@ -64,6 +64,7 @@ export type OrderStatus =
   | "confirmed"
   | "preparing"
   | "ready"
+  | "shipped"
   | "delivered"
   | "cancelled";
 export type PaymentStatus = "pending" | "paid" | "refunded";
@@ -294,6 +295,23 @@ export interface IInventoryItem {
   supplier?: string;
   isActive: boolean;
   lastRestocked?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Notification types
+export type NotificationType = "order_status" | "system";
+
+export interface INotification {
+  _id: Types.ObjectId;
+  user: Types.ObjectId;
+  order?: Types.ObjectId;
+  type: NotificationType;
+  title: string;
+  message: string;
+  isRead: boolean;
+  readAt?: Date;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }

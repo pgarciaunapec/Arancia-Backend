@@ -47,7 +47,9 @@ router.get(
         }),
         Order.countDocuments({ status: { $ne: "cart" } }),
         Order.countDocuments({
-          status: { $in: ["pending", "confirmed", "preparing", "ready"] },
+          status: {
+            $in: ["pending", "confirmed", "preparing", "ready", "shipped"],
+          },
         }),
         Order.countDocuments({ status: "pending" }),
         Order.countDocuments({

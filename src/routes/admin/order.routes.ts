@@ -3,6 +3,7 @@ import { Order } from "../../models/index";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
 import { AuthRequest } from "../../types/index";
+import { OrderService } from "../../services/order.service";
 
 const router: import('express').Router = Router();
 
@@ -56,6 +57,7 @@ router.patch(
         "confirmed",
         "preparing",
         "ready",
+        "shipped",
         "delivered",
         "cancelled",
       ];
@@ -64,11 +66,8 @@ router.patch(
         return;
       }
 
-      const order = await Order.findByIdAndUpdate(
-        req.params.id,
-        { status },
-        { new: true },
-      ).populate("user", "name email");
+      const updated = await OrderService.updateStatus(req.params.id, { status });
+      const order = await Order.findById(updated._id).populate("user", "name email");
 
       if (!order) {
         res.status(404).json({ error: "Orden no encontrada" });

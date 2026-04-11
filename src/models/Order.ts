@@ -77,6 +77,7 @@ const orderSchema = new Schema<IOrderDocument>(
         "confirmed",
         "preparing",
         "ready",
+        "shipped",
         "delivered",
         "cancelled",
       ] as OrderStatus[],

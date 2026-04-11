@@ -18,6 +18,7 @@ import contactRoutes from "./routes/contact.routes";
 import imageRoutes from "./routes/image.routes";
 import paymentRoutes from "./routes/payment.routes";
 import deliveryRoutes from "./routes/delivery.routes";
+import notificationRoutes from "./routes/notification.routes";
 import adminUserRoutes from "./routes/admin/user.routes";
 import adminTableRoutes from "./routes/admin/table.routes";
 import adminCollectionsRoutes from "./routes/admin/collections.routes";
@@ -83,6 +84,7 @@ export const createApp = (): Application => {
   app.use("/api/images", imageRoutes);
   app.use("/api/payments", paymentRoutes);
   app.use("/api/delivery", deliveryRoutes);
+  app.use("/api/notifications", notificationRoutes);
 
   // Admin routes
   app.use("/api/admin/users", adminUserRoutes);
