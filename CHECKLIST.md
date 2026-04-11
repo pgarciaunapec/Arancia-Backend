@@ -31,6 +31,30 @@
 - [x] Tests exitosos
 
 ## Cierre de tarea
-- [ ] Commit Task 2
-- [ ] Merge a `dev`
-- [ ] Borrado de rama local/remota Task 2
+- [x] Commit Task 2
+- [x] Merge a `dev`
+- [x] Borrado de rama local/remota Task 2
+
+## Ciclo 2026-04-10 - Backlog de Ejecucion
+
+### Task 3 (Persistencia E2E de producto)
+- [x] Ordenes con snapshot de `description` e `ingredients` por item
+- [x] MenuItem con `description` opcional
+- [x] Cart API enriquecida para metadata de item
+- [x] DTOs/tipos/validaciones sincronizados
+- [x] Build exitoso
+- [x] Commit + merge --no-ff
+
+### Task 4 (Persistencia eventos robusta)
+- [x] Validacion explicita de `guests` y `preferredDate`
+- [x] Normalizacion de payload de cotizacion de eventos
+- [x] Respuesta de persistencia con `_id/status/createdAt`
+- [x] Build exitoso
+- [x] Commit + merge --no-ff
+
+### Task 5 (Telefonos RD)
+- [x] Sin cambio backend: saneo de telefono ejecutado en frontend previo a API
+
+## Nota operativa
+- [x] Limpieza local de ramas completada
+- [x] Intento de borrado remoto ejecutado (si la rama no fue publicada, Git devolvio `remote ref does not exist`)

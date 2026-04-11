@@ -53,3 +53,56 @@
 ### Verificacion
 - Build: OK (`pnpm run build`)
 - Tests: OK (`pnpm run test`)
+
+## Ciclo 2026-04-10 - Backlog de Ejecucion (Protocolo Godmode)
+
+### Task 3 - Persistencia E2E de detalle de producto
+#### Rama
+- `feature/task3-product-persistence`
+
+#### Cambios clave
+- Ordenes enriquecidas con snapshot de producto por item:
+  - `description`
+  - `ingredients[]`
+- Catalogo de menu extendido con `description` opcional para detalle expandible frontend.
+- Cart API enriquecida para devolver metadata de item en lectura de carrito.
+- DTOs/tipos/validaciones actualizados para mantener contrato consistente.
+
+#### Archivos principales
+- `src/models/Order.ts`
+- `src/services/order.service.ts`
+- `src/routes/cart.routes.ts`
+- `src/models/MenuItem.ts`
+- `src/services/menu.service.ts`
+- `src/dtos/order.dto.ts`
+- `src/dtos/menuItem.dto.ts`
+- `src/types/index.ts`
+- `src/utils/validation.util.ts`
+
+#### Verificacion
+- Build: OK (`pnpm run build`)
+
+### Task 4 - Persistencia de eventos robustecida
+#### Rama
+- `feature/task4-events-persistence`
+
+#### Cambios clave
+- Endpoint `POST /api/contact/event-quote` endurecido:
+  - Normalizacion de payload (`name`, `email`, `phone`, `notes`, `packageName`).
+  - Validacion explicita de `guests` entero y mayor a 0.
+  - Validacion explicita de `preferredDate` cuando es enviada.
+  - Respuesta de exito con metadatos de persistencia (`_id`, `status`, `createdAt`).
+
+#### Archivos principales
+- `src/routes/contact.routes.ts`
+
+#### Verificacion
+- Build: OK (`pnpm run build`)
+
+### Task 5 - Telefonos dominicanos
+#### Estado backend
+- Sin cambios de backend requeridos: limpieza a digitos se ejecuta en frontend antes de enviar payload.
+
+## Observaciones de cierre Git
+- Cierres realizados con merge `--no-ff` hacia `dev`.
+- Intentos de borrado remoto de rama devolvieron `remote ref does not exist` cuando la rama no habia sido publicada; limpieza local completada.
