@@ -347,6 +347,31 @@ export interface IInventoryMovement {
   updatedAt: Date;
 }
 
+// Invoice types
+export type InvoiceKind = "order" | "table_bill";
+
+export interface IInvoice {
+  _id: Types.ObjectId;
+  code: string;
+  kind: InvoiceKind;
+  order?: Types.ObjectId;
+  tableBill?: Types.ObjectId;
+  user?: Types.ObjectId;
+  payment?: Types.ObjectId;
+  paymentMethod?: PaymentMethod;
+  subtotal: number;
+  tax: number;
+  discount: number;
+  total: number;
+  currency: string;
+  qrPayload: string;
+  qrImageDataUrl: string;
+  issuedAt: Date;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // Notification types
 export type NotificationType = "order_status" | "system";
 

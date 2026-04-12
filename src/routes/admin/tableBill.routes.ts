@@ -4,6 +4,7 @@ import { TableBill, Table, MenuItem, User } from "../../models/index";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
 import { AuthRequest } from "../../types/index";
+import { InvoiceService } from "../../services/invoice.service";
 
 const router: import("express").Router = Router();
 
@@ -270,9 +271,23 @@ router.post(
         activeBill: null,
       });
 
+      const invoice = await InvoiceService.createFromTableBill(
+        bill,
+        req.body.paymentMethod,
+      );
+
       res.json({
         success: true,
         data: bill,
+        invoice: {
+          _id: invoice._id,
+          code: invoice.code,
+          kind: invoice.kind,
+          total: invoice.total,
+          currency: invoice.currency,
+          qrImageDataUrl: invoice.qrImageDataUrl,
+          issuedAt: invoice.issuedAt,
+        },
         message: "Cuenta cerrada exitosamente",
       });
     } catch (error) {

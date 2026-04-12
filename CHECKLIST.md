@@ -107,3 +107,14 @@
 - [x] Cuentas de mesa con mesero explicito (`waiterId`) y listado general (`GET /api/admin/table-bills`)
 - [x] Build exitoso
 - [x] Commit + merge --no-ff
+
+### Task 6 (Facturacion + QR unico)
+- [x] Modelo `Invoice` creado y exportado en indice de modelos
+- [x] Tipos `InvoiceKind` e `IInvoice` agregados
+- [x] Servicio `InvoiceService` implementado con codigo unico y generacion de QR
+- [x] Emision de comprobante integrada en `POST /api/payments`
+- [x] Emision de comprobante integrada en `POST /api/admin/table-bills/:id/close`
+- [x] Endpoints de usuario implementados en `/api/invoices`
+- [x] Endpoints admin implementados en `/api/admin/invoices`
+- [x] Dependencia `qrcode` tipada con `@types/qrcode`
+- [x] Build exitoso

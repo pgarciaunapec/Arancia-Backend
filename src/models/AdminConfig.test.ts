@@ -9,6 +9,7 @@ import {
 describe("AdminConfig model", () => {
   beforeAll(async () => {
     await connectMongoMemory();
+    await AdminConfig.syncIndexes();
   });
 
   afterAll(async () => {
