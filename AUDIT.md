@@ -240,3 +240,35 @@
 
 #### Verificacion
 - Build: OK (`pnpm run build`)
+
+### Task 6 - Facturacion y comprobantes con QR unico
+#### Rama
+- `feature/task6-invoices-qr-collections`
+
+#### Cambios clave
+- Nuevo dominio `Invoice` con persistencia real en MongoDB para pedidos y cuentas de mesa.
+- Servicio `InvoiceService` para:
+  - generacion de codigo unico (`INV-YYYYMMDD-XXXXXX` / `TBL-YYYYMMDD-XXXXXX`)
+  - generacion de QR (`data:image/png;base64`) con payload serializado
+- Emision automatica de comprobante al procesar pagos de pedidos (`/api/payments`).
+- Emision automatica de comprobante al cerrar cuentas POS (`/api/admin/table-bills/:id/close`).
+- API de comprobantes para usuario y administracion:
+  - `GET /api/invoices/my`
+  - `GET /api/invoices/order/:orderId`
+  - `GET /api/invoices/:id`
+  - `GET /api/admin/invoices`
+  - `GET /api/admin/invoices/:id`
+
+#### Archivos principales
+- `src/models/Invoice.ts`
+- `src/services/invoice.service.ts`
+- `src/routes/invoice.routes.ts`
+- `src/routes/admin/invoice.routes.ts`
+- `src/routes/payment.routes.ts`
+- `src/routes/admin/tableBill.routes.ts`
+- `src/models/index.ts`
+- `src/server.ts`
+- `src/types/index.ts`
+
+#### Verificacion
+- Build: OK (`pnpm run build`)

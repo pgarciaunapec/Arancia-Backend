@@ -5,6 +5,7 @@ import { authMiddleware } from "../middleware/auth.middleware";
 import { AuthRequest } from "../types/index";
 import { PaymentService } from "../services/payment.service";
 import { DeliveryService } from "../services/delivery.service";
+import { InvoiceService } from "../services/invoice.service";
 
 const router: import("express").Router = Router();
 
@@ -90,6 +91,8 @@ router.post(
         );
       }
 
+      const invoice = await InvoiceService.createFromOrderPayment(order, payment);
+
       res.status(201).json({
         success: true,
         data: {
@@ -104,6 +107,15 @@ router.post(
             _id: order._id,
             status: order.status,
             paymentStatus: order.paymentStatus,
+          },
+          invoice: {
+            _id: invoice._id,
+            code: invoice.code,
+            kind: invoice.kind,
+            total: invoice.total,
+            currency: invoice.currency,
+            qrImageDataUrl: invoice.qrImageDataUrl,
+            issuedAt: invoice.issuedAt,
           },
         },
         message: "Pago procesado exitosamente",

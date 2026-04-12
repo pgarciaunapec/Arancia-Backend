@@ -18,6 +18,7 @@ import contactRoutes from "./routes/contact.routes";
 import imageRoutes from "./routes/image.routes";
 import paymentRoutes from "./routes/payment.routes";
 import deliveryRoutes from "./routes/delivery.routes";
+import invoiceRoutes from "./routes/invoice.routes";
 import notificationRoutes from "./routes/notification.routes";
 import adminUserRoutes from "./routes/admin/user.routes";
 import adminTableRoutes from "./routes/admin/table.routes";
@@ -29,6 +30,7 @@ import adminDashboardRoutes from "./routes/admin/dashboard.routes";
 import adminOrderRoutes from "./routes/admin/order.routes";
 import adminDeliveryRoutes from "./routes/admin/delivery.routes";
 import adminFleetRoutes from "./routes/admin/fleet.routes";
+import adminInvoiceRoutes from "./routes/admin/invoice.routes";
 import adminAuditRoutes from "./routes/admin/audit.routes";
 
 export const createApp = (): Application => {
@@ -85,6 +87,7 @@ export const createApp = (): Application => {
   app.use("/api/images", imageRoutes);
   app.use("/api/payments", paymentRoutes);
   app.use("/api/delivery", deliveryRoutes);
+  app.use("/api/invoices", invoiceRoutes);
   app.use("/api/notifications", notificationRoutes);
 
   // Admin routes
@@ -98,6 +101,7 @@ export const createApp = (): Application => {
   app.use("/api/admin/orders", adminOrderRoutes);
   app.use("/api/admin/delivery", adminDeliveryRoutes);
   app.use("/api/admin/fleet", adminFleetRoutes);
+  app.use("/api/admin/invoices", adminInvoiceRoutes);
   app.use("/api/admin/audit", adminAuditRoutes);
 
   // 404 handler
