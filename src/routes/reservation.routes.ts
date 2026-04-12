@@ -49,6 +49,11 @@ router.get(
   ReservationController.getUserReservations,
 );
 router.get("/my", authMiddleware, ReservationController.getUserReservations);
+router.get(
+  "/availability",
+  authMiddleware,
+  ReservationController.getAvailability,
+);
 
 /**
  * @swagger

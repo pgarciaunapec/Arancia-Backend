@@ -23,10 +23,24 @@ const tableSchema = new Schema<ITableDocument>(
       trim: true,
       default: "Salón Principal",
     },
+    image: {
+      type: String,
+      trim: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+      maxlength: 300,
+    },
     status: {
       type: String,
       enum: ["available", "occupied", "reserved", "maintenance"],
       default: "available",
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true,
     },
     activeBill: {
       type: Schema.Types.ObjectId,

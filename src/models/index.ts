@@ -11,6 +11,10 @@ export { Table, ITableDocument } from "./Table";
 export { TableBill, ITableBillDocument } from "./TableBill";
 export { CashRegister, ICashRegisterDocument } from "./CashRegister";
 export { InventoryItem, IInventoryItemDocument } from "./InventoryItem";
+export {
+  InventoryMovement,
+  IInventoryMovementDocument,
+} from "./InventoryMovement";
 export { Notification, INotificationDocument } from "./Notification";
 export { default as AdminConfig } from "./AdminConfig";
 export { AuditLog, IAuditLogDocument } from "./AuditLog";

@@ -82,3 +82,16 @@
 - [x] Sin cambios de backend requeridos
 - [x] Contrato de `/api/admin/users` validado para filtros avanzados de frontend
 - [x] Commit + merge --no-ff (documentacion)
+
+### Task 4 (Mesas + Inventario CRUD sincronizados)
+- [x] Modelo `Table` extendido con `image`, `description` e `isActive`
+- [x] Asignacion/reasignacion/liberacion automatica de mesa en `ReservationService`
+- [x] Endpoint `GET /api/reservations/availability` implementado con filtro por `guests`
+- [x] CRUD admin de mesas ampliado con metadata visual
+- [x] Endpoint `GET /api/admin/tables/available` implementado
+- [x] Modelo `InventoryMovement` creado y exportado
+- [x] Endpoints de historial de movimientos implementados (`/movements` y `/:id/movements`)
+- [x] Logging de movimientos aplicado en create/update/restock/delete de inventario
+- [x] DTO de reservacion devuelve `table` con metadata para frontend
+- [x] Build exitoso
+- [x] Commit + merge --no-ff
