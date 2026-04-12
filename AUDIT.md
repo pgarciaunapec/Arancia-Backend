@@ -164,3 +164,37 @@
 
 #### Verificacion
 - Backend sin cambios funcionales de codigo para esta tarea.
+
+### Task 4 - Modulo de Mesas e Inventario CRUD sincronizado
+#### Rama
+- `feature/task4-tables-inventory-sync`
+
+#### Cambios clave
+- Modelo `Table` ampliado con `image`, `description` e `isActive`.
+- Flujo de reservaciones sincronizado con mesas:
+  - asignacion automatica por capacidad en creacion
+  - reasignacion y liberacion de mesa en actualizacion/cancelacion/confirmacion
+- Endpoint de disponibilidad para reservas con filtro por comensales:
+  - `GET /api/reservations/availability?guests=N`
+- CRUD admin de mesas extendido con metadata visual y endpoint de disponibilidad:
+  - `GET /api/admin/tables/available`
+- Trazabilidad de inventario implementada con nuevo modelo `InventoryMovement` y endpoints de historial:
+  - `GET /api/admin/inventory/movements`
+  - `GET /api/admin/inventory/:id/movements`
+- Registro de movimientos en create/update/restock/delete de inventario.
+- DTO de reservacion actualizado para devolver metadata de mesa y sincronizar frontend.
+
+#### Archivos principales
+- `src/models/Table.ts`
+- `src/models/Reservation.ts`
+- `src/models/InventoryMovement.ts`
+- `src/services/reservation.service.ts`
+- `src/routes/reservation.routes.ts`
+- `src/controllers/reservation.controller.ts`
+- `src/routes/admin/table.routes.ts`
+- `src/routes/admin/inventory.routes.ts`
+- `src/dtos/reservation.dto.ts`
+- `src/types/index.ts`
+
+#### Verificacion
+- Build: OK (`pnpm run build`)

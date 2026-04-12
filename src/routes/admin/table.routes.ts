@@ -5,7 +5,7 @@ import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
 import { AuthRequest } from "../../types/index";
 
-const router: import('express').Router = Router();
+const router: import("express").Router = Router();
 
 /**
  * @swagger
@@ -44,13 +44,41 @@ router.get(
   requireRole(["admin", "staff"]),
   async (_req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const tables = await Table.find()
+      const tables = await Table.find({ isActive: true })
         .populate("activeBill")
         .sort({ number: 1 });
       res.json({ success: true, data: tables });
     } catch (error) {
       console.error("Get tables error:", error);
       res.status(500).json({ error: "Error al obtener mesas" });
+    }
+  },
+);
+
+// @route   GET /api/admin/tables/available
+// @desc    Get available tables (optional filter by guests)
+// @access  Admin/Staff
+router.get(
+  "/available",
+  authMiddleware,
+  requireRole(["admin", "staff"]),
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const guests = parseInt((req.query.guests as string) || "0", 10);
+      const query: Record<string, unknown> = {
+        isActive: true,
+        status: "available",
+      };
+
+      if (Number.isFinite(guests) && guests > 0) {
+        query.capacity = { $gte: guests };
+      }
+
+      const tables = await Table.find(query).sort({ capacity: 1, number: 1 });
+      res.json({ success: true, data: tables });
+    } catch (error) {
+      console.error("Get available tables error:", error);
+      res.status(500).json({ error: "Error al obtener disponibilidad" });
     }
   },
 );
@@ -119,6 +147,8 @@ router.post(
       .isInt({ min: 1, max: 20 })
       .withMessage("Capacidad inválida"),
     body("zone").optional().trim(),
+    body("image").optional().isString(),
+    body("description").optional().isString(),
   ],
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -134,7 +164,13 @@ router.post(
         return;
       }
 
-      const table = await Table.create(req.body);
+      const table = await Table.create({
+        number: req.body.number,
+        capacity: req.body.capacity,
+        zone: req.body.zone,
+        image: req.body.image,
+        description: req.body.description,
+      });
       res.status(201).json({ success: true, data: table });
     } catch (error) {
       console.error("Create table error:", error);
@@ -152,11 +188,14 @@ router.patch(
   requireRole(["admin", "staff"]),
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const { status, capacity, zone } = req.body;
+      const { status, capacity, zone, number, image, description } = req.body;
       const update: Record<string, unknown> = {};
       if (status) update.status = status;
       if (capacity) update.capacity = capacity;
       if (zone) update.zone = zone;
+      if (number) update.number = number;
+      if (image !== undefined) update.image = image;
+      if (description !== undefined) update.description = description;
 
       const table = await Table.findByIdAndUpdate(req.params.id, update, {
         new: true,

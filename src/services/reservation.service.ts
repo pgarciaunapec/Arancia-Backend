@@ -4,6 +4,7 @@
  */
 
 import { Reservation } from "../models/Reservation";
+import { Table } from "../models/Table";
 import {
   CreateReservationRequestDTO,
   UpdateReservationRequestDTO,
@@ -19,6 +20,39 @@ type ReservationActor = {
 };
 
 export class ReservationService {
+  private static async assignAvailableTable(
+    guests: number,
+    excludeTableId?: string,
+  ) {
+    const query: Record<string, unknown> = {
+      isActive: true,
+      status: "available",
+      capacity: { $gte: guests },
+    };
+
+    if (excludeTableId) {
+      query._id = { $ne: excludeTableId };
+    }
+
+    return Table.findOne(query).sort({ capacity: 1, number: 1 });
+  }
+
+  static async getAvailability(guests?: number) {
+    const query: Record<string, unknown> = {
+      isActive: true,
+      status: "available",
+    };
+
+    if (guests && Number.isFinite(guests) && guests > 0) {
+      query.capacity = { $gte: guests };
+    }
+
+    return Table.find(query)
+      .select("number capacity zone image description status")
+      .sort({ capacity: 1, number: 1 })
+      .lean();
+  }
+
   private static canManageReservation(
     reservationUserId: unknown,
     actor?: ReservationActor,
@@ -45,8 +79,17 @@ export class ReservationService {
     dto: CreateReservationRequestDTO,
     userId?: string,
   ): Promise<ReservationResponseDTO> {
+    const table = await this.assignAvailableTable(dto.guests);
+
+    if (!table) {
+      throw new Error(
+        "No hay mesas disponibles para la cantidad de personas seleccionada.",
+      );
+    }
+
     const reservation = await Reservation.create({
       user: userId,
+      table: table._id,
       date: dto.date,
       time: dto.time,
       guests: dto.guests,
@@ -58,6 +101,11 @@ export class ReservationService {
       status: "pending",
     });
 
+    table.status = "reserved";
+    await table.save();
+
+    await reservation.populate("table", "number zone capacity image");
+
     return this.mapToResponseDTO(reservation);
   }
 
@@ -65,7 +113,10 @@ export class ReservationService {
    * Get reservation by ID
    */
   static async getById(id: string): Promise<ReservationResponseDTO> {
-    const reservation = await Reservation.findById(id);
+    const reservation = await Reservation.findById(id).populate(
+      "table",
+      "number zone capacity image",
+    );
     if (!reservation) {
       throw new Error("Reservación no encontrada");
     }
@@ -78,9 +129,9 @@ export class ReservationService {
   static async getUserReservations(
     userId: string,
   ): Promise<ReservationResponseDTO[]> {
-    const reservations = await Reservation.find({ user: userId }).sort({
-      date: -1,
-    });
+    const reservations = await Reservation.find({ user: userId })
+      .populate("table", "number zone capacity image")
+      .sort({ date: -1 });
     return reservations.map((res) => this.mapToResponseDTO(res));
   }
 
@@ -96,6 +147,7 @@ export class ReservationService {
   }> {
     const total = await Reservation.countDocuments();
     const reservations = await Reservation.find()
+      .populate("table", "number zone capacity image")
       .skip(skip)
       .limit(limit)
       .sort({ date: -1 });
@@ -120,7 +172,9 @@ export class ReservationService {
         $gte: startOfDay,
         $lte: endOfDay,
       },
-    }).sort({ time: 1 });
+    })
+      .populate("table", "number zone capacity image")
+      .sort({ time: 1 });
 
     return reservations.map((res) => this.mapToResponseDTO(res));
   }
@@ -161,13 +215,41 @@ export class ReservationService {
       dto.status &&
       dto.status !== reservation.status
     ) {
-      throw new Error("Solo el personal puede cambiar el estado de la reservación");
+      throw new Error(
+        "Solo el personal puede cambiar el estado de la reservación",
+      );
     }
 
     const nextGuests = dto.guests ?? reservation.guests;
     const previousTotal = reservation.guests * COVER_PRICE_PER_GUEST;
     const newTotal = nextGuests * COVER_PRICE_PER_GUEST;
     const delta = newTotal - previousTotal;
+
+    const currentTable = reservation.table
+      ? await Table.findById(reservation.table)
+      : null;
+
+    if (!currentTable || currentTable.capacity < nextGuests) {
+      const replacementTable = await this.assignAvailableTable(
+        nextGuests,
+        currentTable?._id.toString(),
+      );
+
+      if (!replacementTable) {
+        throw new Error(
+          "No hay mesas disponibles para ajustar esta reservación con la nueva capacidad.",
+        );
+      }
+
+      if (currentTable) {
+        currentTable.status = "available";
+        await currentTable.save();
+      }
+
+      replacementTable.status = "reserved";
+      await replacementTable.save();
+      reservation.table = replacementTable._id as any;
+    }
 
     const isPaidReservation = reservation.status === "confirmed";
 
@@ -176,6 +258,8 @@ export class ReservationService {
         `La reserva ya está pagada. Este ajuste requiere un cobro adicional de RD$${delta}. Confirma para continuar.`,
       );
     }
+
+    const nextStatus = dto.status ?? reservation.status;
 
     const { acceptAdditionalCharge: _acceptAdditionalCharge, ...updates } = dto;
 
@@ -186,6 +270,18 @@ export class ReservationService {
     }
 
     await reservation.save();
+
+    if (nextStatus === "cancelled" || nextStatus === "completed") {
+      if (reservation.table) {
+        await Table.findByIdAndUpdate(reservation.table, {
+          status: "available",
+        });
+      }
+    } else if (reservation.table) {
+      await Table.findByIdAndUpdate(reservation.table, { status: "reserved" });
+    }
+
+    await reservation.populate("table", "number zone capacity image");
 
     const pricing: ReservationPricingDTO = {
       coverPerGuest: COVER_PRICE_PER_GUEST,
@@ -229,6 +325,12 @@ export class ReservationService {
     reservation.status = "cancelled";
     await reservation.save();
 
+    if (reservation.table) {
+      await Table.findByIdAndUpdate(reservation.table, { status: "available" });
+    }
+
+    await reservation.populate("table", "number zone capacity image");
+
     return this.mapToResponseDTO(reservation);
   }
 
@@ -246,6 +348,11 @@ export class ReservationService {
       throw new Error("Reservación no encontrada");
     }
 
+    if (reservation.table) {
+      await Table.findByIdAndUpdate(reservation.table, { status: "reserved" });
+      await reservation.populate("table", "number zone capacity image");
+    }
+
     return this.mapToResponseDTO(reservation);
   }
 
@@ -256,9 +363,26 @@ export class ReservationService {
     reservation: any,
     pricing?: ReservationPricingDTO,
   ): ReservationResponseDTO {
+    let mappedTable: ReservationResponseDTO["table"];
+
+    if (reservation.table) {
+      if (typeof reservation.table === "object" && reservation.table.number) {
+        mappedTable = {
+          _id: String(reservation.table._id),
+          number: Number(reservation.table.number),
+          zone: reservation.table.zone || "General",
+          capacity: Number(reservation.table.capacity || 0),
+          image: reservation.table.image || undefined,
+        };
+      } else {
+        mappedTable = String(reservation.table);
+      }
+    }
+
     return {
-      _id: reservation._id,
-      user: reservation.user,
+      _id: String(reservation._id),
+      user: reservation.user ? String(reservation.user) : undefined,
+      table: mappedTable,
       date: reservation.date,
       time: reservation.time,
       guests: reservation.guests,

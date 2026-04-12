@@ -12,6 +12,23 @@ import { sendSuccess, sendError } from "../utils/response.util";
 import { AuthRequest } from "../types/index";
 
 export class ReservationController {
+  static async getAvailability(req: Request, res: Response): Promise<void> {
+    try {
+      const guests = req.query.guests
+        ? parseInt(req.query.guests as string, 10)
+        : undefined;
+      const tables = await ReservationService.getAvailability(guests);
+      sendSuccess(res, {
+        count: tables.length,
+        data: tables,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, error.message, 400);
+      }
+    }
+  }
+
   static async create(req: Request, res: Response): Promise<void> {
     try {
       const actor = (req as AuthRequest).user;

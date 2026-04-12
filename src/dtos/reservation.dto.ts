@@ -33,10 +33,19 @@ export interface ReservationPricingDTO {
   additionalChargeApplied: boolean;
 }
 
+export interface ReservationTableDTO {
+  _id: string;
+  number: number;
+  zone: string;
+  capacity: number;
+  image?: string;
+}
+
 // Response DTOs
 export interface ReservationResponseDTO {
   _id: string;
   user?: string;
+  table?: string | ReservationTableDTO;
   date: Date;
   time: string;
   guests: number;

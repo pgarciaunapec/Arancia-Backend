@@ -1,11 +1,11 @@
 import { Router, Response } from "express";
 import { body, validationResult } from "express-validator";
-import { InventoryItem } from "../../models/index";
+import { InventoryItem, InventoryMovement } from "../../models/index";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
 import { AuthRequest } from "../../types/index";
 
-const router: import('express').Router = Router();
+const router: import("express").Router = Router();
 
 // @route   GET /api/admin/inventory
 // @desc    List inventory items
@@ -44,6 +44,62 @@ router.get(
   },
 );
 
+// @route   GET /api/admin/inventory/movements
+// @desc    Get inventory movement history (optional item filter)
+// @access  Admin
+router.get(
+  "/movements",
+  authMiddleware,
+  requireRole(["admin"]),
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const { itemId, limit = "100" } = req.query;
+      const parsedLimit = Math.min(
+        Math.max(parseInt(limit as string) || 100, 1),
+        300,
+      );
+
+      const query: Record<string, unknown> = {};
+      if (itemId) {
+        query.item = itemId;
+      }
+
+      const movements = await InventoryMovement.find(query)
+        .populate("item", "name category unit")
+        .populate("performedBy", "name email")
+        .sort({ createdAt: -1 })
+        .limit(parsedLimit);
+
+      res.json({ success: true, data: movements });
+    } catch (error) {
+      console.error("Get inventory movements error:", error);
+      res.status(500).json({ error: "Error al obtener trazabilidad" });
+    }
+  },
+);
+
+// @route   GET /api/admin/inventory/:id/movements
+// @desc    Get movement history for one inventory item
+// @access  Admin
+router.get(
+  "/:id/movements",
+  authMiddleware,
+  requireRole(["admin"]),
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const movements = await InventoryMovement.find({ item: req.params.id })
+        .populate("performedBy", "name email")
+        .sort({ createdAt: -1 })
+        .limit(200);
+
+      res.json({ success: true, data: movements });
+    } catch (error) {
+      console.error("Get item movements error:", error);
+      res.status(500).json({ error: "Error al obtener historial del item" });
+    }
+  },
+);
+
 // @route   POST /api/admin/inventory
 // @desc    Create inventory item
 // @access  Admin
@@ -72,6 +128,17 @@ router.post(
       }
 
       const item = await InventoryItem.create(req.body);
+
+      await InventoryMovement.create({
+        item: item._id,
+        action: "create",
+        quantity: Number(item.currentStock || 0),
+        previousStock: 0,
+        newStock: Number(item.currentStock || 0),
+        reason: "Creación de ítem de inventario",
+        performedBy: req.user?.id,
+      });
+
       res.status(201).json({ success: true, data: item });
     } catch (error) {
       console.error("Create inventory error:", error);
@@ -89,6 +156,14 @@ router.put(
   requireRole(["admin"]),
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+      const existing = await InventoryItem.findById(req.params.id);
+      if (!existing) {
+        res.status(404).json({ error: "Ítem no encontrado" });
+        return;
+      }
+
+      const previousStock = Number(existing.currentStock || 0);
+
       const item = await InventoryItem.findByIdAndUpdate(
         req.params.id,
         req.body,
@@ -101,6 +176,19 @@ router.put(
       if (!item) {
         res.status(404).json({ error: "Ítem no encontrado" });
         return;
+      }
+
+      const newStock = Number(item.currentStock || 0);
+      if (newStock !== previousStock) {
+        await InventoryMovement.create({
+          item: item._id,
+          action: newStock > previousStock ? "adjustment_in" : "adjustment_out",
+          quantity: Math.abs(newStock - previousStock),
+          previousStock,
+          newStock,
+          reason: req.body.reason || "Ajuste manual de inventario",
+          performedBy: req.user?.id,
+        });
       }
 
       res.json({ success: true, data: item });
@@ -133,9 +221,20 @@ router.patch(
         return;
       }
 
+      const previousStock = Number(item.currentStock || 0);
       item.currentStock += req.body.quantity;
       item.lastRestocked = new Date();
       await item.save();
+
+      await InventoryMovement.create({
+        item: item._id,
+        action: "restock",
+        quantity: Number(req.body.quantity || 0),
+        previousStock,
+        newStock: Number(item.currentStock || 0),
+        reason: req.body.reason || "Reabastecimiento",
+        performedBy: req.user?.id,
+      });
 
       res.json({ success: true, data: item, message: "Stock actualizado" });
     } catch (error) {
@@ -154,6 +253,12 @@ router.delete(
   requireRole(["admin"]),
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+      const existing = await InventoryItem.findById(req.params.id);
+      if (!existing) {
+        res.status(404).json({ error: "Ítem no encontrado" });
+        return;
+      }
+
       const item = await InventoryItem.findByIdAndUpdate(
         req.params.id,
         { isActive: false },
@@ -164,6 +269,16 @@ router.delete(
         res.status(404).json({ error: "Ítem no encontrado" });
         return;
       }
+
+      await InventoryMovement.create({
+        item: item._id,
+        action: "deactivate",
+        quantity: 0,
+        previousStock: Number(existing.currentStock || 0),
+        newStock: Number(item.currentStock || 0),
+        reason: "Desactivación de ítem",
+        performedBy: req.user?.id,
+      });
 
       res.json({ success: true, message: "Ítem eliminado" });
     } catch (error) {

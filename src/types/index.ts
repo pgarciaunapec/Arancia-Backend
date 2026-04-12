@@ -44,6 +44,7 @@ export type ReservationStatus =
 export interface IReservation {
   _id: Types.ObjectId;
   user?: Types.ObjectId;
+  table?: Types.ObjectId;
   date: Date;
   time: string;
   guests: number;
@@ -230,6 +231,9 @@ export interface ITable {
   capacity: number;
   zone: string;
   status: TableStatus;
+  image?: string;
+  description?: string;
+  isActive: boolean;
   activeBill?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -295,6 +299,27 @@ export interface IInventoryItem {
   supplier?: string;
   isActive: boolean;
   lastRestocked?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type InventoryMovementAction =
+  | "create"
+  | "restock"
+  | "adjustment_in"
+  | "adjustment_out"
+  | "deactivate";
+
+export interface IInventoryMovement {
+  _id: Types.ObjectId;
+  item: Types.ObjectId;
+  action: InventoryMovementAction;
+  quantity: number;
+  previousStock: number;
+  newStock: number;
+  reason?: string;
+  performedBy?: Types.ObjectId;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
