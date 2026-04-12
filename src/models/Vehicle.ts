@@ -54,9 +54,6 @@ const vehicleSchema = new Schema<IVehicleDocument>(
   },
   { timestamps: true },
 );
-
-vehicleSchema.index({ plate: 1 }, { unique: true });
-
 export const Vehicle = mongoose.model<IVehicleDocument>(
   "Vehicle",
   vehicleSchema,
