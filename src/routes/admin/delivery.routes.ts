@@ -6,7 +6,7 @@ import { requireRole } from "../../middleware/role.middleware";
 import { AuthRequest } from "../../types/index";
 import { DeliveryService } from "../../services/delivery.service";
 
-const router: import('express').Router = Router();
+const router: import("express").Router = Router();
 
 // @route   GET /api/admin/delivery
 // @desc    List all active deliveries
@@ -28,6 +28,8 @@ router.get(
       const deliveries = await DeliveryOrder.find(query)
         .populate("order", "total items status")
         .populate("user", "name email phone")
+        .populate("assignedTo", "name email phone")
+        .populate("vehicle", "plate vehicleModel type status")
         .sort({ createdAt: -1 });
 
       res.json({ success: true, data: deliveries });
@@ -55,6 +57,8 @@ router.patch(
     ]),
     body("agentName").optional().isString(),
     body("agentPhone").optional().isString(),
+    body("assignedTo").optional().isMongoId(),
+    body("vehicleId").optional().isMongoId(),
   ],
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -64,7 +68,7 @@ router.patch(
         return;
       }
 
-      const { status, agentName, agentPhone } = req.body;
+      const { status, agentName, agentPhone, assignedTo, vehicleId } = req.body;
       const agentInfo =
         agentName && agentPhone
           ? { name: agentName, phone: agentPhone }
@@ -73,7 +77,11 @@ router.patch(
       const delivery = await DeliveryService.updateStatus(
         req.params.id,
         status,
-        agentInfo,
+        {
+          agentInfo,
+          assignedTo,
+          vehicleId,
+        },
       );
 
       if (!delivery) {
@@ -81,7 +89,13 @@ router.patch(
         return;
       }
 
-      res.json({ success: true, data: delivery });
+      const hydrated = await DeliveryOrder.findById(delivery._id)
+        .populate("order", "total items status")
+        .populate("user", "name email phone")
+        .populate("assignedTo", "name email phone")
+        .populate("vehicle", "plate vehicleModel type status");
+
+      res.json({ success: true, data: hydrated || delivery });
     } catch (error) {
       console.error("Update delivery status error:", error);
       res.status(500).json({ error: "Error al actualizar delivery" });

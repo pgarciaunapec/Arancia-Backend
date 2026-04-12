@@ -28,6 +28,7 @@ import adminInventoryRoutes from "./routes/admin/inventory.routes";
 import adminDashboardRoutes from "./routes/admin/dashboard.routes";
 import adminOrderRoutes from "./routes/admin/order.routes";
 import adminDeliveryRoutes from "./routes/admin/delivery.routes";
+import adminFleetRoutes from "./routes/admin/fleet.routes";
 import adminAuditRoutes from "./routes/admin/audit.routes";
 
 export const createApp = (): Application => {
@@ -96,6 +97,7 @@ export const createApp = (): Application => {
   app.use("/api/admin/dashboard", adminDashboardRoutes);
   app.use("/api/admin/orders", adminOrderRoutes);
   app.use("/api/admin/delivery", adminDeliveryRoutes);
+  app.use("/api/admin/fleet", adminFleetRoutes);
   app.use("/api/admin/audit", adminAuditRoutes);
 
   // 404 handler

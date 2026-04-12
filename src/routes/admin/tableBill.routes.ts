@@ -1,11 +1,35 @@
 import { Router, Response } from "express";
 import { body, validationResult } from "express-validator";
-import { TableBill, Table, MenuItem } from "../../models/index";
+import { TableBill, Table, MenuItem, User } from "../../models/index";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
 import { AuthRequest } from "../../types/index";
 
-const router: import('express').Router = Router();
+const router: import("express").Router = Router();
+
+// @route   GET /api/admin/table-bills
+// @desc    List table bills
+// @access  Admin/Staff
+router.get(
+  "/",
+  authMiddleware,
+  requireRole(["admin", "staff"]),
+  async (_req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const bills = await TableBill.find()
+        .populate("table", "number zone")
+        .populate("waiter", "name email")
+        .populate("customer", "name email")
+        .sort({ createdAt: -1 })
+        .limit(200);
+
+      res.json({ success: true, data: bills });
+    } catch (error) {
+      console.error("List table bills error:", error);
+      res.status(500).json({ error: "Error al obtener cuentas de mesa" });
+    }
+  },
+);
 
 // @route   POST /api/admin/table-bills
 // @desc    Open a new bill for a table
@@ -14,7 +38,10 @@ router.post(
   "/",
   authMiddleware,
   requireRole(["admin", "staff"]),
-  [body("tableId").notEmpty().withMessage("Mesa requerida")],
+  [
+    body("tableId").notEmpty().withMessage("Mesa requerida"),
+    body("waiterId").optional().isMongoId(),
+  ],
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const errors = validationResult(req);
@@ -23,7 +50,7 @@ router.post(
         return;
       }
 
-      const { tableId, customerId } = req.body;
+      const { tableId, customerId, waiterId } = req.body;
 
       const table = await Table.findById(tableId);
       if (!table) {
@@ -36,14 +63,33 @@ router.post(
         return;
       }
 
+      const selectedWaiterId = waiterId || req.user!.id;
+      if (
+        waiterId &&
+        req.user?.role !== "admin" &&
+        String(waiterId) !== String(req.user?.id)
+      ) {
+        res.status(403).json({ error: "Solo admin puede asignar otro mesero" });
+        return;
+      }
+
+      const waiter = await User.findById(selectedWaiterId)
+        .select("role")
+        .lean();
+      if (!waiter || (waiter.role !== "staff" && waiter.role !== "admin")) {
+        res.status(400).json({ error: "Mesero asignado inválido" });
+        return;
+      }
+
       const bill = await TableBill.create({
         table: tableId,
-        waiter: req.user!.id,
+        waiter: selectedWaiterId,
         customer: customerId || undefined,
       });
 
       table.status = "occupied";
       table.activeBill = bill._id;
+      table.assignedStaff = selectedWaiterId;
       await table.save();
 
       res.status(201).json({ success: true, data: bill });

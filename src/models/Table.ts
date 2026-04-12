@@ -42,6 +42,11 @@ const tableSchema = new Schema<ITableDocument>(
       default: true,
       index: true,
     },
+    assignedStaff: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      index: true,
+    },
     activeBill: {
       type: Schema.Types.ObjectId,
       ref: "TableBill",

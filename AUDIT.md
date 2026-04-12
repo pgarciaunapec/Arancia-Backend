@@ -82,6 +82,48 @@
 #### Verificacion
 - Build: OK (`pnpm run build`)
 
+### Task 5 - Gestion de empleados, asignaciones operativas y flota
+#### Rama
+- `feature/task5-employee-fleet-assignment`
+
+#### Cambios clave
+- Dominio extendido para asignaciones operativas:
+  - ordenes con `assignedStaff`, `assignedTable`, `assignedVehicle`, `assignmentNotes`
+  - mesas con `assignedStaff`
+  - delivery con `assignedTo` y `vehicle`
+- Nuevo modulo de flota con persistencia real en MongoDB:
+  - modelo `Vehicle`
+  - CRUD admin en `/api/admin/fleet`
+- Selector de delivery integrado al flujo de envio de pedidos:
+  - `OrderService.updateStatus` exige repartidor al pasar a `shipped` en pedidos de delivery
+  - asigna repartidor/vehiculo al delivery y a la orden
+- Endpoint dedicado para empleados activos:
+  - `GET /api/admin/users/employees?includeAdmins=true|false`
+- Asignaciones de orden habilitadas desde admin:
+  - `PATCH /api/admin/orders/:id/assignment`
+- Cuentas de mesa reforzadas:
+  - listado `GET /api/admin/table-bills`
+  - apertura de cuenta con mesero explicito (`waiterId`) y sincronizacion con mesa.
+
+#### Archivos principales
+- `src/models/Vehicle.ts`
+- `src/routes/admin/fleet.routes.ts`
+- `src/models/Order.ts`
+- `src/models/DeliveryOrder.ts`
+- `src/models/Table.ts`
+- `src/routes/admin/order.routes.ts`
+- `src/routes/admin/delivery.routes.ts`
+- `src/routes/admin/table.routes.ts`
+- `src/routes/admin/tableBill.routes.ts`
+- `src/routes/admin/user.routes.ts`
+- `src/services/order.service.ts`
+- `src/services/delivery.service.ts`
+- `src/types/index.ts`
+- `src/server.ts`
+
+#### Verificacion
+- Build: OK (`pnpm run build`)
+
 ### Task 4 - Persistencia de eventos robustecida
 #### Rama
 - `feature/task4-events-persistence`

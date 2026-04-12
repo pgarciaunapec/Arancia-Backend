@@ -15,6 +15,7 @@ export {
   InventoryMovement,
   IInventoryMovementDocument,
 } from "./InventoryMovement";
+export { Vehicle, IVehicleDocument } from "./Vehicle";
 export { Notification, INotificationDocument } from "./Notification";
 export { default as AdminConfig } from "./AdminConfig";
 export { AuditLog, IAuditLogDocument } from "./AuditLog";

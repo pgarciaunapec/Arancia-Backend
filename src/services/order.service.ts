@@ -125,30 +125,66 @@ export class OrderService {
     }
 
     const previousStatus = order.status;
+
+    if (
+      dto.status === "shipped" &&
+      previousStatus !== "shipped" &&
+      order.isDelivery &&
+      order.shippingAddress &&
+      !dto.deliveryAgentId
+    ) {
+      throw new Error(
+        "Debes seleccionar un repartidor antes de enviar el pedido.",
+      );
+    }
+
     order.status = dto.status;
+
+    if (dto.deliveryAgentId) {
+      order.assignedStaff = dto.deliveryAgentId as any;
+    }
+
+    if (dto.vehicleId) {
+      order.assignedVehicle = dto.vehicleId as any;
+    }
+
     await order.save();
 
     if (dto.status === "shipped" && previousStatus !== "shipped") {
       const orderCode = order._id.toString().slice(-8).toUpperCase();
 
       if (order.isDelivery && order.shippingAddress) {
-        const existingDelivery = await DeliveryOrder.findOne({ order: order._id });
+        const existingDelivery = await DeliveryOrder.findOne({
+          order: order._id,
+        });
 
         if (existingDelivery) {
           await DeliveryService.updateStatus(
             existingDelivery._id.toString(),
             "in_transit",
+            {
+              assignedTo: dto.deliveryAgentId,
+              vehicleId: dto.vehicleId,
+            },
           );
         } else {
           const createdDelivery = await DeliveryService.createFromOrder(
             order._id.toString(),
             String(order.user),
             order.shippingAddress,
+            {
+              assignedTo: dto.deliveryAgentId,
+              vehicleId: dto.vehicleId,
+            },
           );
 
           await DeliveryService.updateStatus(
             createdDelivery._id.toString(),
             "in_transit",
+            {
+              assignedTo: dto.deliveryAgentId,
+              vehicleId: dto.vehicleId,
+            },
           );
         }
       }
@@ -232,6 +268,16 @@ export class OrderService {
       paymentStatus: order.paymentStatus,
       isDelivery: order.isDelivery,
       shippingAddress: order.shippingAddress,
+      assignedStaff: order.assignedStaff
+        ? String(order.assignedStaff._id || order.assignedStaff)
+        : undefined,
+      assignedTable: order.assignedTable
+        ? String(order.assignedTable._id || order.assignedTable)
+        : undefined,
+      assignedVehicle: order.assignedVehicle
+        ? String(order.assignedVehicle._id || order.assignedVehicle)
+        : undefined,
+      assignmentNotes: order.assignmentNotes,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
     };
