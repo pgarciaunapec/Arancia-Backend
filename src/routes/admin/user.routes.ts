@@ -138,6 +138,35 @@ router.post(
   },
 );
 
+// @route   GET /api/admin/users/employees
+// @desc    List active employees (staff/admin)
+// @access  Admin/Staff
+router.get(
+  "/employees",
+  authMiddleware,
+  requireRole(["admin", "staff"]),
+  [query("includeAdmins").optional().isBoolean().toBoolean()],
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const includeAdmins = Boolean(req.query.includeAdmins);
+      const roleFilter = includeAdmins ? ["staff", "admin"] : ["staff"];
+
+      const employees = await User.find({
+        isActive: { $ne: false },
+        role: { $in: roleFilter },
+      })
+        .select("name email phone role isActive createdAt")
+        .sort({ name: 1 })
+        .lean();
+
+      res.json({ success: true, data: employees });
+    } catch (error) {
+      console.error("Admin get employees error:", error);
+      res.status(500).json({ error: "Error al obtener empleados" });
+    }
+  },
+);
+
 // @route   GET /api/admin/users/:id
 // @desc    Get user detail
 // @access  Admin

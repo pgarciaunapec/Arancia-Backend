@@ -95,6 +95,26 @@ const orderSchema = new Schema<IOrderDocument>(
       type: Boolean,
       default: false,
     },
+    assignedStaff: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      index: true,
+    },
+    assignedTable: {
+      type: Schema.Types.ObjectId,
+      ref: "Table",
+      index: true,
+    },
+    assignedVehicle: {
+      type: Schema.Types.ObjectId,
+      ref: "Vehicle",
+      index: true,
+    },
+    assignmentNotes: {
+      type: String,
+      trim: true,
+      maxlength: 300,
+    },
   },
   {
     timestamps: true,

@@ -1,11 +1,11 @@
 import { Router, Response } from "express";
-import { Order } from "../../models/index";
+import { Order, Table, User } from "../../models/index";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
 import { AuthRequest } from "../../types/index";
 import { OrderService } from "../../services/order.service";
 
-const router: import('express').Router = Router();
+const router: import("express").Router = Router();
 
 // @route   GET /api/admin/orders
 // @desc    List all orders (admin)
@@ -26,6 +26,9 @@ router.get(
 
       const orders = await Order.find(query)
         .populate("user", "name email")
+        .populate("assignedStaff", "name email")
+        .populate("assignedTable", "number zone")
+        .populate("assignedVehicle", "plate vehicleModel type status")
         .sort({ createdAt: -1 })
         .skip((p - 1) * l)
         .limit(l);
@@ -51,7 +54,7 @@ router.patch(
   requireRole(["admin", "staff"]),
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const { status } = req.body;
+      const { status, deliveryAgentId, vehicleId } = req.body;
       const validStatuses = [
         "pending",
         "confirmed",
@@ -66,8 +69,16 @@ router.patch(
         return;
       }
 
-      const updated = await OrderService.updateStatus(req.params.id, { status });
-      const order = await Order.findById(updated._id).populate("user", "name email");
+      const updated = await OrderService.updateStatus(req.params.id, {
+        status,
+        deliveryAgentId,
+        vehicleId,
+      });
+      const order = await Order.findById(updated._id)
+        .populate("user", "name email")
+        .populate("assignedStaff", "name email")
+        .populate("assignedTable", "number zone")
+        .populate("assignedVehicle", "plate vehicleModel type status");
 
       if (!order) {
         res.status(404).json({ error: "Orden no encontrada" });
@@ -78,6 +89,74 @@ router.patch(
     } catch (error) {
       console.error("Update order status error:", error);
       res.status(500).json({ error: "Error al actualizar estado" });
+    }
+  },
+);
+
+// @route   PATCH /api/admin/orders/:id/assignment
+// @desc    Assign staff/table/notes to an order
+// @access  Admin/Staff
+router.patch(
+  "/:id/assignment",
+  authMiddleware,
+  requireRole(["admin", "staff"]),
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const { staffId, tableId, notes } = req.body as {
+        staffId?: string;
+        tableId?: string;
+        notes?: string;
+      };
+
+      if (!staffId && !tableId && notes === undefined) {
+        res
+          .status(400)
+          .json({ error: "Debes enviar al menos un campo para asignar" });
+        return;
+      }
+
+      if (staffId) {
+        const staffUser = await User.findById(staffId).select("role").lean();
+        if (
+          !staffUser ||
+          (staffUser.role !== "staff" && staffUser.role !== "admin")
+        ) {
+          res.status(400).json({ error: "El empleado asignado no es válido" });
+          return;
+        }
+      }
+
+      if (tableId) {
+        const table = await Table.findById(tableId).select("_id").lean();
+        if (!table) {
+          res.status(400).json({ error: "La mesa asignada no existe" });
+          return;
+        }
+      }
+
+      const update: Record<string, unknown> = {};
+      if (staffId !== undefined) update.assignedStaff = staffId || null;
+      if (tableId !== undefined) update.assignedTable = tableId || null;
+      if (notes !== undefined) update.assignmentNotes = notes;
+
+      const order = await Order.findByIdAndUpdate(req.params.id, update, {
+        new: true,
+        runValidators: true,
+      })
+        .populate("user", "name email")
+        .populate("assignedStaff", "name email")
+        .populate("assignedTable", "number zone")
+        .populate("assignedVehicle", "plate vehicleModel type status");
+
+      if (!order) {
+        res.status(404).json({ error: "Orden no encontrada" });
+        return;
+      }
+
+      res.json({ success: true, data: order });
+    } catch (error) {
+      console.error("Update order assignment error:", error);
+      res.status(500).json({ error: "Error al asignar orden" });
     }
   },
 );

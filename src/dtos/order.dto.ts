@@ -30,6 +30,8 @@ export interface UpdateOrderStatusRequestDTO {
     | "shipped"
     | "delivered"
     | "cancelled";
+  deliveryAgentId?: string;
+  vehicleId?: string;
 }
 
 // Response DTOs
@@ -44,6 +46,10 @@ export interface OrderResponseDTO {
   paymentStatus: string;
   isDelivery?: boolean;
   shippingAddress?: ShippingAddressDTO;
+  assignedStaff?: string;
+  assignedTable?: string;
+  assignedVehicle?: string;
+  assignmentNotes?: string;
   createdAt: Date;
   updatedAt: Date;
 }

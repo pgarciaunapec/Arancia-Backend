@@ -1,11 +1,19 @@
 import { DeliveryOrder } from "../models/DeliveryOrder";
+import { User } from "../models/User";
 import { IShippingAddress } from "../types/index";
+
+type DeliveryAssignmentOptions = {
+  agentInfo?: { name: string; phone: string };
+  assignedTo?: string;
+  vehicleId?: string;
+};
 
 export class DeliveryService {
   static async createFromOrder(
     orderId: string,
     userId: string,
     address: IShippingAddress,
+    options?: DeliveryAssignmentOptions,
   ) {
     const estimatedMinutes = 45;
     const estimatedArrival = new Date(
@@ -17,6 +25,8 @@ export class DeliveryService {
       user: userId,
       status: "pending",
       deliveryAddress: address,
+      assignedTo: options?.assignedTo,
+      vehicle: options?.vehicleId,
       estimatedMinutes,
       estimatedArrival,
     });
@@ -35,12 +45,30 @@ export class DeliveryService {
   static async updateStatus(
     deliveryId: string,
     status: string,
-    agentInfo?: { name: string; phone: string },
+    options?: DeliveryAssignmentOptions,
   ) {
     const update: Record<string, unknown> = { status };
 
-    if (agentInfo) {
-      update.agent = agentInfo;
+    if (options?.assignedTo) {
+      update.assignedTo = options.assignedTo;
+    }
+
+    if (options?.vehicleId) {
+      update.vehicle = options.vehicleId;
+    }
+
+    if (options?.agentInfo) {
+      update.agent = options.agentInfo;
+    } else if (options?.assignedTo) {
+      const staff = await User.findById(options.assignedTo)
+        .select("name phone")
+        .lean();
+      if (staff) {
+        update.agent = {
+          name: staff.name || "Repartidor",
+          phone: staff.phone || "",
+        };
+      }
     }
 
     if (status === "in_transit") {

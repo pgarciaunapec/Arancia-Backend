@@ -18,6 +18,16 @@ const deliveryOrderSchema = new Schema<IDeliveryOrderDocument>(
       required: true,
       index: true,
     },
+    assignedTo: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      index: true,
+    },
+    vehicle: {
+      type: Schema.Types.ObjectId,
+      ref: "Vehicle",
+      index: true,
+    },
     status: {
       type: String,
       enum: ["pending", "assigned", "in_transit", "delivered", "failed"],

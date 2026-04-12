@@ -95,3 +95,15 @@
 - [x] DTO de reservacion devuelve `table` con metadata para frontend
 - [x] Build exitoso
 - [x] Commit + merge --no-ff
+
+### Task 5 (Empleados + asignaciones + flota)
+- [x] Modelo `Vehicle` creado con estados operativos y persistencia Mongo
+- [x] CRUD admin de flota implementado en `/api/admin/fleet`
+- [x] Tipos/modelos de orden, mesa y delivery extendidos para asignaciones
+- [x] Selector de delivery integrado al cambio de estado `shipped`
+- [x] `OrderService` exige repartidor para pedidos delivery al enviar
+- [x] Endpoint de empleados activos implementado (`/api/admin/users/employees`)
+- [x] Endpoint de asignacion operativa de orden implementado (`/api/admin/orders/:id/assignment`)
+- [x] Cuentas de mesa con mesero explicito (`waiterId`) y listado general (`GET /api/admin/table-bills`)
+- [x] Build exitoso
+- [x] Commit + merge --no-ff

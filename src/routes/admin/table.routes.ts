@@ -1,6 +1,6 @@
 import { Router, Response } from "express";
 import { body, validationResult } from "express-validator";
-import { Table } from "../../models/index";
+import { Table, User } from "../../models/index";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
 import { AuthRequest } from "../../types/index";
@@ -46,6 +46,7 @@ router.get(
     try {
       const tables = await Table.find({ isActive: true })
         .populate("activeBill")
+        .populate("assignedStaff", "name email")
         .sort({ number: 1 });
       res.json({ success: true, data: tables });
     } catch (error) {
@@ -149,6 +150,7 @@ router.post(
     body("zone").optional().trim(),
     body("image").optional().isString(),
     body("description").optional().isString(),
+    body("assignedStaff").optional().isMongoId(),
   ],
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -164,12 +166,23 @@ router.post(
         return;
       }
 
+      if (req.body.assignedStaff) {
+        const staff = await User.findById(req.body.assignedStaff)
+          .select("role")
+          .lean();
+        if (!staff || (staff.role !== "staff" && staff.role !== "admin")) {
+          res.status(400).json({ error: "Empleado asignado inválido" });
+          return;
+        }
+      }
+
       const table = await Table.create({
         number: req.body.number,
         capacity: req.body.capacity,
         zone: req.body.zone,
         image: req.body.image,
         description: req.body.description,
+        assignedStaff: req.body.assignedStaff,
       });
       res.status(201).json({ success: true, data: table });
     } catch (error) {
@@ -188,7 +201,15 @@ router.patch(
   requireRole(["admin", "staff"]),
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const { status, capacity, zone, number, image, description } = req.body;
+      const {
+        status,
+        capacity,
+        zone,
+        number,
+        image,
+        description,
+        assignedStaff,
+      } = req.body;
       const update: Record<string, unknown> = {};
       if (status) update.status = status;
       if (capacity) update.capacity = capacity;
@@ -196,6 +217,18 @@ router.patch(
       if (number) update.number = number;
       if (image !== undefined) update.image = image;
       if (description !== undefined) update.description = description;
+      if (assignedStaff !== undefined) {
+        if (assignedStaff) {
+          const staff = await User.findById(assignedStaff)
+            .select("role")
+            .lean();
+          if (!staff || (staff.role !== "staff" && staff.role !== "admin")) {
+            res.status(400).json({ error: "Empleado asignado inválido" });
+            return;
+          }
+        }
+        update.assignedStaff = assignedStaff || null;
+      }
 
       const table = await Table.findByIdAndUpdate(req.params.id, update, {
         new: true,
@@ -209,6 +242,51 @@ router.patch(
     } catch (error) {
       console.error("Update table error:", error);
       res.status(500).json({ error: "Error al actualizar mesa" });
+    }
+  },
+);
+
+// @route   PATCH /api/admin/tables/:id/assign-staff
+// @desc    Assign or clear staff on a table
+// @access  Admin/Staff
+router.patch(
+  "/:id/assign-staff",
+  authMiddleware,
+  requireRole(["admin", "staff"]),
+  [body("staffId").optional({ nullable: true }).isMongoId()],
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() });
+        return;
+      }
+
+      const { staffId } = req.body as { staffId?: string | null };
+
+      if (staffId) {
+        const staff = await User.findById(staffId).select("role").lean();
+        if (!staff || (staff.role !== "staff" && staff.role !== "admin")) {
+          res.status(400).json({ error: "Empleado asignado inválido" });
+          return;
+        }
+      }
+
+      const table = await Table.findByIdAndUpdate(
+        req.params.id,
+        { assignedStaff: staffId || null },
+        { new: true },
+      ).populate("assignedStaff", "name email");
+
+      if (!table) {
+        res.status(404).json({ error: "Mesa no encontrada" });
+        return;
+      }
+
+      res.json({ success: true, data: table });
+    } catch (error) {
+      console.error("Assign staff table error:", error);
+      res.status(500).json({ error: "Error al asignar empleado a la mesa" });
     }
   },
 );

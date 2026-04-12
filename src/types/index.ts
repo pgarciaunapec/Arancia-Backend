@@ -97,6 +97,10 @@ export interface IOrder {
   shippingAddress?: IShippingAddress;
   paymentStatus: PaymentStatus;
   isDelivery?: boolean;
+  assignedStaff?: Types.ObjectId;
+  assignedTable?: Types.ObjectId;
+  assignedVehicle?: Types.ObjectId;
+  assignmentNotes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -203,6 +207,8 @@ export interface IDeliveryOrder {
   _id: Types.ObjectId;
   order: Types.ObjectId;
   user: Types.ObjectId;
+  assignedTo?: Types.ObjectId;
+  vehicle?: Types.ObjectId;
   status: DeliveryStatus;
   deliveryAddress: {
     name: string;
@@ -222,6 +228,22 @@ export interface IDeliveryOrder {
   updatedAt: Date;
 }
 
+export type VehicleType = "motorbike" | "car" | "van" | "bicycle";
+export type VehicleStatus = "available" | "in_use" | "maintenance" | "inactive";
+
+export interface IVehicle {
+  _id: Types.ObjectId;
+  plate: string;
+  type: VehicleType;
+  vehicleModel: string;
+  capacityOrders: number;
+  status: VehicleStatus;
+  isActive: boolean;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // Table types
 export type TableStatus = "available" | "occupied" | "reserved" | "maintenance";
 
@@ -234,6 +256,7 @@ export interface ITable {
   image?: string;
   description?: string;
   isActive: boolean;
+  assignedStaff?: Types.ObjectId;
   activeBill?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
