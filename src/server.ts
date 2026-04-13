@@ -43,9 +43,17 @@ export const createApp = (): Application => {
     }),
   );
   app.use(mongoSanitize());
+  const allowedOrigins = Array.isArray(env.frontendOrigins)
+    ? env.frontendOrigins
+    : [env.frontendUrl];
+
   app.use(
     cors({
-      origin: env.frontendUrl,
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true); // allow non-browser or same-origin requests
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(new Error(`Origin ${origin} not allowed by CORS`));
+      },
       credentials: true,
     }),
   );
