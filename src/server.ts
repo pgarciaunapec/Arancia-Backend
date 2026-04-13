@@ -47,11 +47,28 @@ export const createApp = (): Application => {
     ? env.frontendOrigins
     : [env.frontendUrl];
 
+  // Normalize allowed hostnames so we accept the same hostname with http/https/any-port
+  const allowedHostnames = allowedOrigins.map((o) => {
+    try {
+      return new URL(o).hostname;
+    } catch {
+      return o.replace(/^https?:\/\//, "").split(":")[0];
+    }
+  });
+
   app.use(
     cors({
       origin: (origin, callback) => {
         if (!origin) return callback(null, true); // allow non-browser or same-origin requests
+        // Allow exact matches
         if (allowedOrigins.includes(origin)) return callback(null, true);
+        // Allow match by hostname (handles http vs https differences)
+        try {
+          const originHost = new URL(origin).hostname;
+          if (allowedHostnames.includes(originHost)) return callback(null, true);
+        } catch {
+          // ignore parse errors
+        }
         return callback(new Error(`Origin ${origin} not allowed by CORS`));
       },
       credentials: true,
