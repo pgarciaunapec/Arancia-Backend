@@ -1,42 +1,31 @@
 version: "3.8"
+
 services:
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NODE_ENV: ${NODE_ENV:-production}
-        PORT: ${PORT:-3003}
-        JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
-    container_name: ${BACKEND_CONTAINER_NAME:-arancia-backend}
-    restart: unless-stopped
+    build: .
+    image: arancia-backend:latest
+    restart: always
     ports:
-      - ${BACKEND_PORT:-3003}:${PORT:-3003}
+      - "${BACKEND_PORT:-3003}:3003"
     environment:
-      PORT: ${PORT:-3003}
-      NODE_ENV: ${NODE_ENV:-production}
-      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:Pantonio2404@mongodb:27017/arancia}
-      JWT_SECRET: ${JWT_SECRET:-arancia_prod_Xy7n8R!kQwq2Z7v}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
-      DOMAIN: ${DOMAIN:-localhost}
-    volumes:
-      - ./src:/app/src
-      - ./uploads:/app/uploads
+      NODE_ENV: "${NODE_ENV:-production}"
+      PORT: "${PORT:-3003}"
+      MONGODB_URI: "${MONGODB_URI:-mongodb://mongo:Pantonio2404@mongodb:27017/arancia}"
+      JWT_SECRET: "${JWT_SECRET:-arancia_prod_Xy7n8R!kQwq2Z7v}"
+      JWT_EXPIRES_IN: "${JWT_EXPIRES_IN:-7d}"
+      FRONTEND_URL: "${FRONTEND_URL:-http://localhost:5173}"
+      DOMAIN: "${DOMAIN:-localhost}"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
+      - "traefik.http.routers.arancia-backend.rule=Host(`arancia-api-dev.nauvolan.abrdns.com`)"
+      - "traefik.http.routers.arancia-backend.entrypoints=websecure"
+      - "traefik.http.routers.arancia-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.arancia-backend.loadbalancer.server.port=3003"
     networks:
       - dokploy-network
-    healthcheck:
-      test:
-        - CMD
-        - node
-        - -e
-        - require('http').get('http://localhost:${PORT:-3003}/api', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})
-      interval: 30s
-      timeout: 10s
-      retries: 3
+
 networks:
   dokploy-network:
     external: true
-volumes:
-  uploads_data:
-    driver: local
+    name: dokploy-network
