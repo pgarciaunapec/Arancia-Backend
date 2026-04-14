@@ -1,10 +1,84 @@
 import mongoose, { Schema, Document } from "mongoose";
 import bcrypt from "bcryptjs";
-import { IUser } from "../types/index";
+import { IUser, ISavedAddress, ISavedCard } from "../types/index";
 
 export interface IUserDocument extends Omit<IUser, "_id">, Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
+
+const savedAddressSchema = new Schema<ISavedAddress>(
+  {
+    label: {
+      type: String,
+      trim: true,
+      default: "Mi dirección",
+    },
+    name: {
+      type: String,
+      required: [true, "El nombre es requerido"],
+      trim: true,
+    },
+    address: {
+      type: String,
+      required: [true, "La dirección es requerida"],
+      trim: true,
+    },
+    city: {
+      type: String,
+      required: [true, "La ciudad es requerida"],
+      trim: true,
+    },
+    zip: {
+      type: String,
+      trim: true,
+      default: "00000",
+    },
+    isDefault: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { _id: true },
+);
+
+const savedCardSchema = new Schema<ISavedCard>(
+  {
+    label: {
+      type: String,
+      trim: true,
+      default: "Mi tarjeta",
+    },
+    last4: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    cardType: {
+      type: String,
+      enum: ["visa", "mastercard", "other"],
+      default: "other",
+    },
+    expiryMonth: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 12,
+    },
+    expiryYear: {
+      type: Number,
+      required: true,
+    },
+    isDefault: {
+      type: Boolean,
+      default: false,
+    },
+    cardHash: {
+      type: String,
+      select: false,
+    },
+  },
+  { _id: true },
+);
 
 const userSchema = new Schema<IUserDocument>(
   {
@@ -37,6 +111,8 @@ const userSchema = new Schema<IUserDocument>(
       type: String,
       trim: true,
     },
+    savedAddresses: [savedAddressSchema],
+    savedCards: [savedCardSchema],
     role: {
       type: String,
       enum: ["customer", "staff", "admin"],

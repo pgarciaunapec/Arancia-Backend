@@ -5,6 +5,8 @@
 
 import { User } from "../models/User";
 import { UpdateProfileRequestDTO, UserResponseDTO } from "../dtos/index";
+import { ISavedAddress, ISavedCard } from "../types/index";
+import { Types } from "mongoose";
 
 export class UserService {
   /**
@@ -113,6 +115,202 @@ export class UserService {
     if (!user) {
       throw new Error("Usuario no encontrado");
     }
+  }
+
+  /**
+   * Get saved addresses for user
+   */
+  static async getSavedAddresses(userId: string): Promise<ISavedAddress[]> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("Usuario no encontrado");
+    }
+    return user.savedAddresses || [];
+  }
+
+  /**
+   * Add saved address for user
+   */
+  static async addSavedAddress(
+    userId: string,
+    addressData: Partial<ISavedAddress>,
+  ): Promise<ISavedAddress> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("Usuario no encontrado");
+    }
+
+    if (!user.savedAddresses) {
+      user.savedAddresses = [];
+    }
+
+    const newAddress: ISavedAddress = {
+      _id: new Types.ObjectId(),
+      ...addressData,
+    } as ISavedAddress;
+
+    user.savedAddresses.push(newAddress);
+    await user.save();
+    return newAddress;
+  }
+
+  /**
+   * Update saved address for user
+   */
+  static async updateSavedAddress(
+    userId: string,
+    addressId: string,
+    addressData: Partial<ISavedAddress>,
+  ): Promise<ISavedAddress> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("Usuario no encontrado");
+    }
+
+    if (!user.savedAddresses) {
+      throw new Error("No se encontró la dirección");
+    }
+
+    const addressIndex = user.savedAddresses.findIndex(
+      (addr) => addr._id?.toString() === addressId,
+    );
+
+    if (addressIndex === -1) {
+      throw new Error("Dirección no encontrada");
+    }
+
+    user.savedAddresses[addressIndex] = {
+      ...user.savedAddresses[addressIndex],
+      ...addressData,
+      _id: user.savedAddresses[addressIndex]._id,
+    } as ISavedAddress;
+
+    await user.save();
+    return user.savedAddresses[addressIndex];
+  }
+
+  /**
+   * Delete saved address for user
+   */
+  static async deleteSavedAddress(userId: string, addressId: string): Promise<void> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("Usuario no encontrado");
+    }
+
+    if (!user.savedAddresses) {
+      throw new Error("No se encontró la dirección");
+    }
+
+    user.savedAddresses = user.savedAddresses.filter(
+      (addr) => addr._id?.toString() !== addressId,
+    );
+
+    await user.save();
+  }
+
+  /**
+   * Get saved cards for user
+   */
+  static async getSavedCards(userId: string): Promise<ISavedCard[]> {
+    const user = await User.findById(userId).select("+savedCards");
+    if (!user) {
+      throw new Error("Usuario no encontrado");
+    }
+    // never return cardHash - only last4 and metadata
+    return (user.savedCards || []).map((card) => ({
+      ...card,
+      cardHash: undefined, // explicitly exclude
+    }));
+  }
+
+  /**
+   * Add saved card for user (only stores last4, not full number)
+   */
+  static async addSavedCard(
+    userId: string,
+    cardData: Partial<ISavedCard>,
+  ): Promise<ISavedCard> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("Usuario no encontrado");
+    }
+
+    if (!user.savedCards) {
+      user.savedCards = [];
+    }
+
+    const newCard: ISavedCard = {
+      _id: new Types.ObjectId(),
+      ...cardData,
+    } as ISavedCard;
+
+    user.savedCards.push(newCard);
+    await user.save();
+
+    // never return cardHash
+    return {
+      ...newCard,
+      cardHash: undefined,
+    };
+  }
+
+  /**
+   * Update saved card for user
+   */
+  static async updateSavedCard(
+    userId: string,
+    cardId: string,
+    cardData: Partial<ISavedCard>,
+  ): Promise<ISavedCard> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("Usuario no encontrado");
+    }
+
+    if (!user.savedCards) {
+      throw new Error("No se encontró la tarjeta");
+    }
+
+    const cardIndex = user.savedCards.findIndex(
+      (card) => card._id?.toString() === cardId,
+    );
+
+    if (cardIndex === -1) {
+      throw new Error("Tarjeta no encontrada");
+    }
+
+    user.savedCards[cardIndex] = {
+      ...user.savedCards[cardIndex],
+      ...cardData,
+      _id: user.savedCards[cardIndex]._id,
+    } as ISavedCard;
+
+    await user.save();
+    return {
+      ...user.savedCards[cardIndex],
+      cardHash: undefined,
+    };
+  }
+
+  /**
+   * Delete saved card for user
+   */
+  static async deleteSavedCard(userId: string, cardId: string): Promise<void> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("Usuario no encontrado");
+    }
+
+    if (!user.savedCards) {
+      throw new Error("No se encontró la tarjeta");
+    }
+
+    user.savedCards = user.savedCards.filter(
+      (card) => card._id?.toString() !== cardId,
+    );
+
+    await user.save();
   }
 
   /**
