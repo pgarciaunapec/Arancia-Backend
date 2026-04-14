@@ -9,6 +9,7 @@ import {
   UpdateMenuItemRequestDTO,
   MenuItemResponseDTO,
 } from "../dtos/index";
+import { ImageService } from "./image.service";
 
 export class MenuItemService {
   /**
@@ -62,13 +63,16 @@ export class MenuItemService {
   static async create(
     dto: CreateMenuItemRequestDTO,
   ): Promise<MenuItemResponseDTO> {
+    // Procesar imagen: si es URL externa, descargar y convertir a Base64
+    const processedImage = await ImageService.processImageInput(dto.image);
+
     const item = await MenuItem.create({
       name: dto.name,
       category: dto.category,
       price: dto.price,
       ingredients: dto.ingredients,
       description: dto.description,
-      image: dto.image,
+      image: processedImage,
       available: dto.available !== false,
     });
     return this.mapToResponseDTO(item);
@@ -81,9 +85,16 @@ export class MenuItemService {
     id: string,
     dto: UpdateMenuItemRequestDTO,
   ): Promise<MenuItemResponseDTO> {
+    const updateData: Record<string, any> = { ...dto };
+
+    // Procesar imagen si viene en la actualización
+    if (updateData.image) {
+      updateData.image = await ImageService.processImageInput(updateData.image);
+    }
+
     const item = await MenuItem.findByIdAndUpdate(
       id,
-      { $set: dto },
+      { $set: updateData },
       { new: true, runValidators: true },
     );
     if (!item) {
