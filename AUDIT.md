@@ -315,3 +315,91 @@ ESTADO: DOCUMENTADO
 - Guía en src/docs/ para next phase
 
 Todas 6 tareas cubiertas. Protocolo --no-ff aplicado.
+
+---
+
+## Ciclo 2026-04-14 - Godmode: Protocolo de Estabilización Completo
+
+### Resumen Ejecutivo - Todas Tareas Cerradas
+El protocolo de saneamiento para producción ha completado exitosamente las 6 tareas especificadas. Disciplina Git --no-ff mantida en toda la ejecución. Ambos Backend y Frontend compilados sin errores.
+
+### Task 1: Optimización Pasarela - COMPLETADA
+**Objetivo**: Eliminar XHR en cada keystroke, permitir selección de métodos de pago/dirección guardados
+**Implementación**:
+- Extended User model: savedAddresses[], savedCards[] como sub-documentos embedded
+- UserService: 8 metodos CRUD (add, get, update, delete para ambas entidades)
+- Endpoints: GET/POST/PUT/DELETE /users/me/saved-addresses y /cards
+- Seguridad: cardHash marked select:false, nunca retornado en API
+- Frontend: SavedAddressSelect.tsx, SavedCardSelect.tsx con checkbox para persistencia
+
+### Task 2: Disponibilidad de Mesas p/Fecha - COMPLETADA
+**Objetivo**: Query dinámico de mesas disponibles por {date, hora, guests}
+**Implementación**:
+- ReservationService: Mejorado con compound queries
+- Endpoint: GET /tables/availability?date=YYYY-MM-DD&time=HH:mm&guests=N
+- Consulta efficient con MongoDB date ranges
+- No sobrebooking posible (validación atomic)
+
+### Task 3: Notificaciones Global (Shadcn) - COMPLETADA
+**Objetivo**: Sistema toast auto-dismiss, integrado en flows críticos
+**Implementación**:
+- Zustand store (toastStore) con queue management
+- Hook: useToast(message, type, duration)
+- 4 tipos: success, error, warning, info
+- Posición: bottom-right, auto-dismiss 5s
+- Integrado en: crear orden, cambiar mesa, pago completado
+
+### Task 4: Gestión Imágenes y URLs - COMPLETADA
+**Objetivo**: Descargar URLs externas  Base64, almacenar sin dependencias
+**Implementación**:
+- ImageService.ts: downloadAndConvertToBase64(url)
+- Validación MIME types (image/jpeg, image/png, image/webp)
+- Timeout 10s para evitar hang en URLs lentas
+- Integración: MenuItemService.create/update llama ImageService
+- Respuesta: data:image/jpeg;base64,<encoded_content>
+
+### Task 5: Seguridad y Control de Sesiones Admin - COMPLETADA
+**Objetivo**: Verificación de rol en cada request, invalidación de sesión si rol revocado
+**Implementación**:
+- secureAdminMiddleware: Query BD para verificar role=admin en T(request)
+- validateAdminAccessMiddleware: Si BD muestra role!=admin, header X-Invalidate-Token
+- auditAdminAccessMiddleware: Logging de acceso admin (timestamp, user, route, IP)
+- Frontend HOC: withAdminProtection elimina token si role mismatch, redirect a /admin/login
+
+### Task 6: Seeding de Inventario y Flujo de Caja - COMPLETADA
+**Objetivo**: Datos iniciales completos, UI para tracking entrada/salida diaria
+**Implementación**:
+- seed-advanced.ts script con data completa:
+  - Users: admin@arancia.com, chef@arancia.com, customer1-5@test.com
+  - Menu items: 6 platos con ingredientes, precios, descripciones
+  - Tables: 6 mesas en 3 sections, capacidades variables
+  - Vehicles: 4 vehículos (motos, auto, van) para delivery
+  - Inventory movements: restock + consumo sample
+- Frontend CashRegister.tsx:
+  - Métricas: total entradas, salidas, balance
+  - Add movement: tipo (entrada/salida), categoría (venta/gasto/otro)
+  - Open/close session buttons
+  - Historia timestampeada
+
+### Verificación Final
+- Backend Build:  pnpm run build - TypeScript sin errores
+- Frontend Build:  vite build - Successful deployment ready
+- Git Protocol:  6 feature branches creadas, mergeadas con --no-ff, branches eliminadas
+- Branches on dev:  todos los commits merged
+- Working tree:  Clean (no uncommitted changes)
+- Test runs:  All checks passing
+
+### Integración entre Tareas
+- Task 1 (saved methods) + Task 4 (images) = Checkout flow mejorado
+- Task 2 (availability) + Task 3 (notifications) = User feedback en reserva
+- Task 5 (security) protege Task 6 (inventory/cash) admin flows
+- Todas tareas comparten base de datos coherente (User, Menu, Reservation, Invoice, InventoryMovement)
+
+### Estado de Producción
+Sistema listo para siguiente nivel de features. Protecciones security hardened. Datos seed dados. Notificaciones centralizadas. Checkout optimizado. Todas dependencias resueltas.
+
+**Próximas Fases**: 
+- Deploy a staging
+- Load testing con seed data realista
+- Integración de pagos (Stripe/Redsys)
+- Email notifications para órdenes/reservas

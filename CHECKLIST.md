@@ -119,13 +119,13 @@
 - [x] Dependencia `qrcode` tipada con `@types/qrcode`
 - [x] Build exitoso
 
-## Ciclo 2026-04-14 - EstabilizaciÛn para ProducciÛn
+## Ciclo 2026-04-14 - EstabilizaciÔøΩn para ProducciÔøΩn
 
-### Task 1 (OptimizaciÛn Pasarela - Direcciones y Tarjetas Guardadas)
+### Task 1 (OptimizaciÔøΩn Pasarela - Direcciones y Tarjetas Guardadas)
 - [x] User model extendido con savedAddresses[] y savedCards[]
 - [x] ISavedAddress e ISavedCard tipos creados
 - [x] Validaciones Yup implementadas
-- [x] UserService mÈtodos CRUD completos
+- [x] UserService mÔøΩtodos CRUD completos
 - [x] 8 endpoints nuevos (GET/POST/PUT/DELETE para address+card)
 - [x] Seguridad: cardHash nunca expuesto, solo last4
 - [x] Build exitoso
@@ -134,8 +134,8 @@
 ### Task 2 (Disponibilidad de Mesas por Fecha)
 - [x] ReservationService.getAvailability() con fecha/hora
 - [x] Query cruza reservas existentes en rango horario
-- [x] ExclusiÛn autom·tica de mesas bookadas
-- [x] assignAvailableTable() con validaciÛn de conflictos
+- [x] ExclusiÔøΩn automÔøΩtica de mesas bookadas
+- [x] assignAvailableTable() con validaciÔøΩn de conflictos
 - [x] GET /reservations/availability?guests=N&date=YYYY-MM-DD&time=HH:MM
 - [x] TypeScript type guard aplicado y corregido
 - [x] Build exitoso
@@ -148,26 +148,37 @@
 - [x] Build exitoso
 - [x] Commit + merge --no-ff
 
-### Task 4 (GestiÛn de Im·genes y URLs)
-- [x] DocumentaciÛn de plan en TASK4_6_IMPLEMENTATION_GUIDE.ts
-- [x] Flujo de descarga: axios -> Buffer -> Base64 -> dataURL
-- [x] Ready para dev sprint siguiente
+### Task 4 (Gesti√≥n de Im√°genes y URLs)
+- [x] ImageService.ts creado con downloadAndConvertToBase64()
+- [x] Validaci√≥n MIME types (image/jpeg, image/png, image/webp)
+- [x] Timeout 10s para prevenir hang
+- [x] MenuItemService.create/update integrado con ImageService
+- [x] Respuesta con data:image/...;base64 embebida
+- [x] Build exitoso
+- [x] Commit + merge --no-ff
 
 ### Task 5 (Seguridad Admin - Role Validation Real-time)
-- [x] adminAuthMiddleware creado en src/middleware/
-- [x] Consulta BD en cada request (no solo JWT claims)
-- [x] 403 'Tu rol ha sido modificado...' cuando revocado
+- [x] secureAdminMiddleware creado - query BD en cada request
+- [x] validateAdminAccessMiddleware - Header X-Invalidate-Token si role != admin
+- [x] auditAdminAccessMiddleware - Logging de acceso admin
 - [x] Previene escalada de privilegios y tokens stale
 - [x] Build exitoso
 - [x] Commit + merge --no-ff
 
 ### Task 6 (Seeding Inventario y Flujo Caja)
-- [x] DocumentaciÛn de plan en TASK4_6_IMPLEMENTATION_GUIDE.ts
-- [x] Cash register flow y inventory tracking especificado
-- [x] Ready para dev sprint siguiente
+- [x] seed-advanced.ts script completo con datos iniciales
+- [x] Users: admin@arancia.com, chef@arancia.com, customer1-5@test.com
+- [x] Menu: 6 items con ingredientes y precios
+- [x] Tables: 6 mesas en 3 sections
+- [x] Vehicles: 4 veh√≠culos para delivery
+- [x] InventoryMovement tracking: restock y consumo
+- [x] Build exitoso
+- [x] Commit + merge --no-ff
 
-## Nota operativa
-- [x] Todos 6 tasks sobre dev master
-- [x] Protocolo --no-ff aplicado
-- [x] Build validate: 0 errores
+## Nota operativa - Ciclo Completo
+- [x] Todos 6 tasks implementados en dev
+- [x] Protocolo --no-ff aplicado (7 commits)
+- [x] Build validate: ‚úÖ 0 errores TypeScript
 - [x] Ramas locales eliminadas post-merge
+- [x] AUDIT.md documentaci√≥n completa
+- [x] Estado producci√≥n: Ready for staging
