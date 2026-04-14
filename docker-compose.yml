@@ -6,30 +6,6 @@ version: '2.1'
 
 services:
   # ========================================
-  # MongoDB Database
-  # ========================================
-  mongodb:
-    image: mongo:7.0
-    container_name: ${MONGODB_CONTAINER_NAME:-arancia-mongodb}
-    restart: unless-stopped
-    ports:
-      - "${MONGODB_PORT:-27017}:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-mongo}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-Pantonio2404}
-      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-arancia}
-    volumes:
-      - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
-    networks:
-      - arancia-network
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # ========================================
   # Backend API
   # ========================================
   backend:
@@ -67,17 +43,13 @@ services:
       TRAEFIK_ROUTER_NAME: ${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}
       TRAEFIK_SERVICE_NAME: ${TRAEFIK_SERVICE_NAME:-arancia-backend-dev}
     
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    
     volumes:
       - ./src:/app/src
       - ./uploads:/app/uploads
-    
+
     networks:
       - arancia-network
-    
+
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:${PORT:-3003}/api', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
       interval: 30s
@@ -95,7 +67,6 @@ networks:
 # Volumes
 # ========================================
 volumes:
-  mongodb_data:
-    driver: local
-  mongodb_config:
+  # uploads stored on host
+  uploads_data:
     driver: local
