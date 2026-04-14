@@ -17,7 +17,20 @@ export class ReservationController {
       const guests = req.query.guests
         ? parseInt(req.query.guests as string, 10)
         : undefined;
-      const tables = await ReservationService.getAvailability(guests);
+      const date = req.query.date ? (req.query.date as string) : undefined;
+      const time = req.query.time ? (req.query.time as string) : undefined;
+      
+      const tables = await ReservationService.getAvailability(guests, date, time);
+      
+      if (!tables || tables.length === 0) {
+        sendSuccess(res, {
+          count: 0,
+          data: [],
+          message: "No hay mesas disponibles para la cantidad de personas seleccionada y fecha/hora solicitada.",
+        });
+        return;
+      }
+      
       sendSuccess(res, {
         count: tables.length,
         data: tables,

@@ -23,6 +23,8 @@ export class ReservationService {
   private static async assignAvailableTable(
     guests: number,
     excludeTableId?: string,
+    date?: Date,
+    time?: string,
   ) {
     const query: Record<string, unknown> = {
       isActive: true,
@@ -34,10 +36,50 @@ export class ReservationService {
       query._id = { $ne: excludeTableId };
     }
 
-    return Table.findOne(query).sort({ capacity: 1, number: 1 });
+    let availableTable = await Table.findOne(query).sort({ capacity: 1, number: 1 });
+
+    // If date and time provided, verify no conflicts with existing reservations
+    if (availableTable && date && time) {
+      const conflicts = await Reservation.findOne({
+        table: availableTable._id,
+        date: {
+          $gte: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
+          $lt: new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1),
+        },
+        time: time,
+        status: { $in: ["pending", "confirmed"] },
+      });
+
+      if (conflicts) {
+        // Table is booked for this time; try next smallest available
+        availableTable = null;
+        const allTables = await Table.find(query).sort({ capacity: 1, number: 1 });
+        for (const table of allTables) {
+          const hasConflict = await Reservation.findOne({
+            table: table._id,
+            date: {
+              $gte: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
+              $lt: new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1),
+            },
+            time: time,
+            status: { $in: ["pending", "confirmed"] },
+          });
+          if (!hasConflict) {
+            availableTable = table;
+            break;
+          }
+        }
+      }
+    }
+
+    return availableTable;
   }
 
-  static async getAvailability(guests?: number) {
+  /**
+   * Get table availability for a specific date/time and guest count
+   * CRITICAL: Crosses existing reservations to exclude booked tables
+   */
+  static async getAvailability(guests?: number, date?: string, time?: string) {
     const query: Record<string, unknown> = {
       isActive: true,
       status: "available",
@@ -47,10 +89,53 @@ export class ReservationService {
       query.capacity = { $gte: guests };
     }
 
-    return Table.find(query)
+    // Get all potentially available tables
+    const allTables = await Table.find(query)
       .select("number capacity zone image description status")
       .sort({ capacity: 1, number: 1 })
       .lean();
+
+    // If date and time provided, filter out booked tables
+    if (!date || !time || !guests || guests <= 0) {
+      return allTables;
+    }
+
+    const reservationDate = new Date(date);
+    if (isNaN(reservationDate.getTime())) {
+      // Invalid date format; return all available tables
+      return allTables;
+    }
+
+    // Query existing reservations for this date/time
+    const existingReservations = await Reservation.find({
+      date: {
+        $gte: new Date(
+          reservationDate.getFullYear(),
+          reservationDate.getMonth(),
+          reservationDate.getDate(),
+        ),
+        $lt: new Date(
+          reservationDate.getFullYear(),
+          reservationDate.getMonth(),
+          reservationDate.getDate() + 1,
+        ),
+      },
+      time: time,
+      status: { $in: ["pending", "confirmed"] },
+    }).select("table");
+
+    const bookedTableIds = new Set(
+      existingReservations
+        .map((res) => res.table)
+        .filter((table): table is any => !!table)
+        .map((table) => table.toString()),
+    );
+
+    // Filter available tables by capacity and exclude booked ones
+    return allTables.filter(
+      (table) =>
+        table.capacity >= guests && !bookedTableIds.has(table._id.toString()),
+    );
   }
 
   private static canManageReservation(
@@ -79,7 +164,13 @@ export class ReservationService {
     dto: CreateReservationRequestDTO,
     userId?: string,
   ): Promise<ReservationResponseDTO> {
-    const table = await this.assignAvailableTable(dto.guests);
+    // CRITICAL: Pass date/time to assignAvailableTable for conflict checking
+    const table = await this.assignAvailableTable(
+      dto.guests,
+      undefined,
+      dto.date,
+      dto.time,
+    );
 
     if (!table) {
       throw new Error(
