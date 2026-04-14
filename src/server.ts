@@ -46,7 +46,7 @@ export const createApp = (): Application => {
   );
   app.use(mongoSanitize());
   // Trust proxy for X-Forwarded-For header (Docker, nginx, load balancer)
-  app.set('trust proxy', 1);
+  app.set("trust proxy", 1);
   const allowedOrigins = Array.isArray(env.frontendOrigins)
     ? env.frontendOrigins
     : [env.frontendUrl];

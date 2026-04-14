@@ -400,9 +400,12 @@ export const getOrCreateAdminConfig = async (
       fields,
       listDefaults: { pageSize: 20, defaultSort: { _id: -1 } },
     },
-    { upsert: true, new: true }
+    { upsert: true, new: true },
   );
-  if (!config) throw new Error(`Failed to create AdminConfig for collection: ${collection}`);
+  if (!config)
+    throw new Error(
+      `Failed to create AdminConfig for collection: ${collection}`,
+    );
   return config;
 };
 
