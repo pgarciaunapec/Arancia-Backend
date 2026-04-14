@@ -76,7 +76,8 @@ export const createApp = (): Application => {
           // Allow match by hostname (handles http vs https differences)
           try {
             const originHost = new URL(origin).hostname;
-            if (allowedHostnames.includes(originHost)) return callback(null, true);
+            if (allowedHostnames.includes(originHost))
+              return callback(null, true);
           } catch {
             // ignore parse errors
           }

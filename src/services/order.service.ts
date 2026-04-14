@@ -77,7 +77,9 @@ export class OrderService {
       }
 
       if (dto.payment.method === "card" && !dto.payment.cardNumber) {
-        throw new Error("El número de tarjeta es requerido para pagar con tarjeta");
+        throw new Error(
+          "El número de tarjeta es requerido para pagar con tarjeta",
+        );
       }
 
       const reference = await PaymentService.generateReference();
@@ -99,10 +101,7 @@ export class OrderService {
         );
       }
 
-      if (
-        dto.payment.method === "transfer" &&
-        dto.payment.transferReference
-      ) {
+      if (dto.payment.method === "transfer" && dto.payment.transferReference) {
         paymentData.transferReference = dto.payment.transferReference;
       }
 
