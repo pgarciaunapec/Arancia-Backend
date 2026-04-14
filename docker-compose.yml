@@ -1,4 +1,4 @@
-version: "2.1"
+version: "3.8"
 services:
   backend:
     build:
@@ -20,30 +20,19 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       DOMAIN: ${DOMAIN:-localhost}
-      TRAEFIK_ROUTER_NAME: ${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}
-      TRAEFIK_SERVICE_NAME: ${TRAEFIK_SERVICE_NAME:-arancia-backend-dev}
     volumes:
       - ./src:/app/src
       - ./uploads:/app/uploads
-    networks:
-      - arancia-network
-      - dokploy-network
-      - default
     labels:
-      # Router HTTPS (websecure)
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}-websecure.rule=Host(`${DOMAIN}`)
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}-websecure.entrypoints=websecure
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}-websecure.tls.certresolver=letsencrypt
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}-websecure.service=${TRAEFIK_SERVICE_NAME:-arancia-backend-dev}
-      
-      # Router HTTP (redirection to HTTPS)
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}-web.rule=Host(`${DOMAIN}`)
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}-web.entrypoints=web
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}-web.middlewares=redirect-to-https
-      
-      # Service backend
-      - traefik.http.services.${TRAEFIK_SERVICE_NAME:-arancia-backend-dev}.loadbalancer.server.port=${PORT:-3003}
       - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.backend-api.rule=Path(`/api`) || PathPrefix(`/api/`)
+      - traefik.http.routers.backend-api.entrypoints=web
+      - traefik.http.routers.backend-api.service=backend-svc
+      - traefik.http.routers.backend-api.priority=1000
+      - traefik.http.services.backend-svc.loadbalancer.server.port=3003
+    networks:
+      - dokploy-network
     healthcheck:
       test:
         - CMD
@@ -54,8 +43,6 @@ services:
       timeout: 10s
       retries: 3
 networks:
-  arancia-network:
-    driver: bridge
   dokploy-network:
     external: true
 volumes:
