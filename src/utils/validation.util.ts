@@ -78,6 +78,13 @@ export const validateCreateOrder = (): ValidationChain[] => [
     .withMessage("La cantidad debe ser al menos 1"),
   body("isDelivery").optional().isBoolean(),
   body("shippingAddress").optional().isObject(),
+  body("payment").optional().isObject(),
+  body("payment.method")
+    .optional()
+    .isIn(["cash", "card", "transfer"])
+    .withMessage("Método de pago inválido"),
+  body("payment.cardNumber").optional().isString(),
+  body("payment.transferReference").optional().isString(),
 ];
 
 /**
