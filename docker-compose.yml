@@ -9,23 +9,27 @@ services:
     environment:
       - MONGODB_URI=${MONGODB_URI}
       - FRONTEND_URL=${FRONTEND_URL}
-      # Force container to listen on 3003 so Traefik routing matches expected port
-      - PORT=3003
-      - NODE_ENV=${NODE_ENV}
+      - PORT=${PORT:-3003}
+      - NODE_ENV=${NODE_ENV:-development}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
     ports:
-      - "3003:3003"
+      - "${PORT:-3003}:${PORT:-3003}"
+    # Traefik Labels - Variablizados para Dokploy
     labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=dokploy-network"
-      - "traefik.http.routers.arancia-backend-web.rule=Host(`arancia-api-dev.nauvolan.abrdns.com`)"
-      - "traefik.http.routers.arancia-backend-web.entrypoints=web"
-      - "traefik.http.routers.arancia-backend-web.middlewares=redirect-to-https@file"
-      - "traefik.http.routers.arancia-backend-websecure.rule=Host(`arancia-api-dev.nauvolan.abrdns.com`)"
-      - "traefik.http.routers.arancia-backend-websecure.entrypoints=websecure"
-      - "traefik.http.routers.arancia-backend-websecure.tls.certresolver=letsencrypt"
-      - "traefik.http.services.arancia-backend.loadbalancer.server.port=3003"
+      - traefik.enable=true
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend}.rule=Host(`${DOMAIN}`)
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend}.entrypoints=websecure
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend}.tls.certresolver=letsencrypt
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend}.service=${TRAEFIK_SERVICE_NAME:-arancia-backend}
+      - traefik.http.services.${TRAEFIK_SERVICE_NAME:-arancia-backend}.loadbalancer.server.port=${PORT:-3003}
+      - traefik.http.services.${TRAEFIK_SERVICE_NAME:-arancia-backend}.loadbalancer.server.scheme=http
+      # Middleware para headers de seguridad (opcional pero recomendado)
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend}.middlewares=securityheaders
+      - traefik.http.middlewares.securityheaders.headers.accesscontrolalloworiginlist=${FRONTEND_URL}
+      - traefik.http.middlewares.securityheaders.headers.accesscontrolmaxage=100
+      - traefik.http.middlewares.securityheaders.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS,PATCH
+      - traefik.http.middlewares.securityheaders.headers.accesscontrolallowheaders=*
     volumes:
       - uploads:/app/uploads
     networks:
