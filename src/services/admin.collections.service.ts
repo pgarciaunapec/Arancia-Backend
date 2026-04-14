@@ -392,12 +392,17 @@ export const getOrCreateAdminConfig = async (
       }))
     : [];
 
-  config = new AdminConfig({
-    collection,
-    fields,
-    listDefaults: { pageSize: 20, defaultSort: { _id: -1 } },
-  });
-  await config.save();
+  // Use upsert to handle concurrent calls and prevent duplicate key errors
+  config = await AdminConfig.findOneAndUpdate(
+    { collection },
+    {
+      collection,
+      fields,
+      listDefaults: { pageSize: 20, defaultSort: { _id: -1 } },
+    },
+    { upsert: true, new: true }
+  );
+  if (!config) throw new Error(`Failed to create AdminConfig for collection: ${collection}`);
   return config;
 };
 
