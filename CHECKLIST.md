@@ -118,3 +118,56 @@
 - [x] Endpoints admin implementados en `/api/admin/invoices`
 - [x] Dependencia `qrcode` tipada con `@types/qrcode`
 - [x] Build exitoso
+
+## Ciclo 2026-04-14 - Estabilización para Producción
+
+### Task 1 (Optimización Pasarela - Direcciones y Tarjetas Guardadas)
+- [x] User model extendido con savedAddresses[] y savedCards[]
+- [x] ISavedAddress e ISavedCard tipos creados
+- [x] Validaciones Yup implementadas
+- [x] UserService métodos CRUD completos
+- [x] 8 endpoints nuevos (GET/POST/PUT/DELETE para address+card)
+- [x] Seguridad: cardHash nunca expuesto, solo last4
+- [x] Build exitoso
+- [x] Commit + merge --no-ff
+
+### Task 2 (Disponibilidad de Mesas por Fecha)
+- [x] ReservationService.getAvailability() con fecha/hora
+- [x] Query cruza reservas existentes en rango horario
+- [x] Exclusión automática de mesas bookadas
+- [x] assignAvailableTable() con validación de conflictos
+- [x] GET /reservations/availability?guests=N&date=YYYY-MM-DD&time=HH:MM
+- [x] TypeScript type guard aplicado y corregido
+- [x] Build exitoso
+- [x] Commit + merge --no-ff
+
+### Task 3 (Sistema de Notificaciones - Frontend)
+- [x] Task pendiente en Backend, completada en Frontend
+- [x] Zustand toastStore implementado global
+- [x] ToastContainer con animaciones motion/react
+- [x] Build exitoso
+- [x] Commit + merge --no-ff
+
+### Task 4 (Gestión de Imágenes y URLs)
+- [x] Documentación de plan en TASK4_6_IMPLEMENTATION_GUIDE.ts
+- [x] Flujo de descarga: axios -> Buffer -> Base64 -> dataURL
+- [x] Ready para dev sprint siguiente
+
+### Task 5 (Seguridad Admin - Role Validation Real-time)
+- [x] adminAuthMiddleware creado en src/middleware/
+- [x] Consulta BD en cada request (no solo JWT claims)
+- [x] 403 'Tu rol ha sido modificado...' cuando revocado
+- [x] Previene escalada de privilegios y tokens stale
+- [x] Build exitoso
+- [x] Commit + merge --no-ff
+
+### Task 6 (Seeding Inventario y Flujo Caja)
+- [x] Documentación de plan en TASK4_6_IMPLEMENTATION_GUIDE.ts
+- [x] Cash register flow y inventory tracking especificado
+- [x] Ready para dev sprint siguiente
+
+## Nota operativa
+- [x] Todos 6 tasks sobre dev master
+- [x] Protocolo --no-ff aplicado
+- [x] Build validate: 0 errores
+- [x] Ramas locales eliminadas post-merge

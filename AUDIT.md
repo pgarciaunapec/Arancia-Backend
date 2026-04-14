@@ -272,3 +272,46 @@
 
 #### Verificacion
 - Build: OK (`pnpm run build`)
+
+
+## Ciclo 2026-04-14 - Estabilización para Producción
+
+### Task 1 - Optimización Pasarela: Direcciones y Tarjetas Guardadas
+ESTADO: COMPLETADA
+- User model con savedAddresses[] y savedCards[]
+- Endpoints CRUD: /me/saved-addresses, /me/saved-cards
+- Seguridad: cardHash nunca retornado, solo últimos 4 dígitos
+- Build OK - Merged a dev
+
+### Task 2 - Disponibilidad de Mesas por Fecha
+ESTADO: COMPLETADA
+- ReservationService.getAvailability() cruza fechas/horas con reservas existentes
+- Excluye mesas bookadas automáticamente
+- Endpoint: GET /reservations/availability?guests=N&date=YYYY-MM-DD&time=HH:MM
+- Build OK - Merged a dev
+
+### Task 3 - Sistema de Notificaciones (Frontend)
+ESTADO: COMPLETADA
+- Zustand toastStore + ToastContainer con animaciones
+- Hook useToast() con success/error/info/warning
+- Auto-dismiss 5s, bottom-right positioning
+- Build OK - Merged a dev
+
+### Task 4 - Gestión de Imágenes y URLs
+ESTADO: DOCUMENTADO
+- Plan: Descargar URLs a Buffer/Base64
+- Guía de implementación en src/docs/
+
+### Task 5 - Seguridad Admin
+ESTADO: COMPLETADA
+- Middleware adminAuthMiddleware valida roles en tiempo real
+- Consulta BD para verificar rol actual (previene escalada)
+- 403 si rol fue revocado
+- Build OK - Merged a dev
+
+### Task 6 - Seeding e Inventario
+ESTADO: DOCUMENTADO
+- Plan: Seed script + Flujo de caja
+- Guía en src/docs/ para next phase
+
+Todas 6 tareas cubiertas. Protocolo --no-ff aplicado.
