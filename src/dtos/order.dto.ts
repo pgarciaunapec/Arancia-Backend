@@ -7,6 +7,7 @@ export interface CreateOrderRequestDTO {
   items: OrderItemInputDTO[];
   shippingAddress?: ShippingAddressDTO;
   isDelivery?: boolean;
+  payment?: OrderPaymentInputDTO;
 }
 
 export interface OrderItemInputDTO {
@@ -19,6 +20,12 @@ export interface ShippingAddressDTO {
   address: string;
   city: string;
   zip: string;
+}
+
+export interface OrderPaymentInputDTO {
+  method: "cash" | "card" | "transfer";
+  cardNumber?: string;
+  transferReference?: string;
 }
 
 export interface UpdateOrderStatusRequestDTO {

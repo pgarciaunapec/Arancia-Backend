@@ -7,12 +7,17 @@ import { Order } from "../models/Order";
 import { DeliveryOrder } from "../models/DeliveryOrder";
 import { MenuItem } from "../models/MenuItem";
 import { Notification } from "../models/Notification";
+import { Payment } from "../models/Payment";
+import { Transaction } from "../models/Transaction";
 import { DeliveryService } from "./delivery.service";
+import { PaymentService } from "./payment.service";
+import { InvoiceService } from "./invoice.service";
 import {
   CreateOrderRequestDTO,
   OrderResponseDTO,
   UpdateOrderStatusRequestDTO,
 } from "../dtos/index";
+import { emitOrderStatusUpdated } from "../realtime/socket";
 
 export class OrderService {
   /**
@@ -64,6 +69,76 @@ export class OrderService {
       paymentStatus: "pending",
       isDelivery: dto.isDelivery,
       shippingAddress: dto.shippingAddress,
+    });
+
+    if (dto.payment?.method) {
+      if (!PaymentService.validatePaymentMethod(dto.payment.method)) {
+        throw new Error("Método de pago inválido");
+      }
+
+      if (dto.payment.method === "card" && !dto.payment.cardNumber) {
+        throw new Error("El número de tarjeta es requerido para pagar con tarjeta");
+      }
+
+      const reference = await PaymentService.generateReference();
+      const paymentData: Record<string, unknown> = {
+        order: order._id,
+        user: userId,
+        amount: order.total,
+        method: dto.payment.method,
+        reference,
+        status: "completed",
+      };
+
+      if (dto.payment.method === "card" && dto.payment.cardNumber) {
+        paymentData.last4Digits = PaymentService.getLast4Digits(
+          dto.payment.cardNumber,
+        );
+        paymentData.cardHash = await PaymentService.hashCardNumber(
+          dto.payment.cardNumber,
+        );
+      }
+
+      if (
+        dto.payment.method === "transfer" &&
+        dto.payment.transferReference
+      ) {
+        paymentData.transferReference = dto.payment.transferReference;
+      }
+
+      const payment = await Payment.create(paymentData);
+
+      await Transaction.create({
+        payment: payment._id,
+        type: "charge",
+        amount: order.total,
+        status: "completed",
+        metadata: {
+          method: dto.payment.method,
+          reference,
+        },
+      });
+
+      order.paymentStatus = "paid";
+      order.status = "confirmed";
+      await order.save();
+
+      if (order.isDelivery && order.shippingAddress) {
+        await DeliveryService.createFromOrder(
+          order._id.toString(),
+          userId,
+          order.shippingAddress,
+        );
+      }
+
+      await InvoiceService.createFromOrderPayment(order, payment);
+    }
+
+    emitOrderStatusUpdated({
+      orderId: order._id.toString(),
+      status: order.status,
+      updatedAt: new Date(order.updatedAt || Date.now()).toISOString(),
+      userId,
     });
 
     return this.mapToResponseDTO(order);
@@ -211,6 +286,13 @@ export class OrderService {
       );
     }
 
+    emitOrderStatusUpdated({
+      orderId: order._id.toString(),
+      status: order.status,
+      updatedAt: new Date(order.updatedAt || Date.now()).toISOString(),
+      userId: String(order.user),
+    });
+
     return this.mapToResponseDTO(order);
   }
 
@@ -249,6 +331,13 @@ export class OrderService {
 
     order.status = "cancelled";
     await order.save();
+
+    emitOrderStatusUpdated({
+      orderId: order._id.toString(),
+      status: order.status,
+      updatedAt: new Date(order.updatedAt || Date.now()).toISOString(),
+      userId: String(order.user),
+    });
 
     return this.mapToResponseDTO(order);
   }

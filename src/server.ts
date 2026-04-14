@@ -1,4 +1,5 @@
 import express, { Application, Request, Response, NextFunction } from "express";
+import { createServer } from "http";
 import cors from "cors";
 import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
@@ -6,6 +7,7 @@ import swaggerUi from "swagger-ui-express";
 import { env } from "./config/env";
 import { connectDatabase } from "./config/database";
 import { specs } from "./config/swagger";
+import { initializeSocketServer } from "./realtime/socket";
 
 // Import routes
 import authRoutes from "./routes/auth.routes";
@@ -163,13 +165,18 @@ export const app = createApp();
 export const startServer = async () => {
   await connectDatabase();
 
-  app.listen(env.port, () => {
+  const httpServer = createServer(app);
+  initializeSocketServer(httpServer);
+
+  httpServer.listen(env.port, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${env.port}`);
     console.log(`📝 Ambiente: ${env.nodeEnv}`);
     console.log(
       `📚 Documentación Swagger: http://localhost:${env.port}/api/docs`,
     );
   });
+
+  return httpServer;
 };
 
 /* c8 ignore start */
