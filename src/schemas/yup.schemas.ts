@@ -218,3 +218,50 @@ export const mongoIdParamYupSchema = yup.object({
     .required("ID requerido")
     .matches(mongoIdRegex, "ID de MongoDB inválido"),
 });
+
+export const savedAddressYupSchema = yup.object({
+  label: yup
+    .string()
+    .trim()
+    .max(50, "La etiqueta no puede exceder 50 caracteres")
+    .optional(),
+  name: yup.string().trim().required("El nombre es requerido"),
+  address: yup.string().trim().required("La dirección es requerida"),
+  city: yup.string().trim().required("La ciudad es requerida"),
+  zip: yup
+    .string()
+    .trim()
+    .optional()
+    .default("00000"),
+  isDefault: yup.boolean().optional().default(false),
+});
+
+export const savedCardYupSchema = yup.object({
+  label: yup
+    .string()
+    .trim()
+    .max(50, "La etiqueta no puede exceder 50 caracteres")
+    .optional(),
+  last4: yup
+    .string()
+    .trim()
+    .required("Últimos 4 dígitos son requeridos")
+    .matches(/^\d{4}$/, "Los últimos 4 dígitos deben ser numéricos"),
+  cardType: yup
+    .string()
+    .oneOf(["visa", "mastercard", "other"], "Tipo de tarjeta inválido")
+    .optional()
+    .default("other"),
+  expiryMonth: yup
+    .number()
+    .typeError("Mes de expiración debe ser numérico")
+    .min(1, "Mes de expiración debe estar entre 1 y 12")
+    .max(12, "Mes de expiración debe estar entre 1 y 12")
+    .required("Mes de expiración es requerido"),
+  expiryYear: yup
+    .number()
+    .typeError("Año de expiración debe ser numérico")
+    .min(2024, "Año de expiración debe ser actual o futuro")
+    .required("Año de expiración es requerido"),
+  isDefault: yup.boolean().optional().default(false),
+});

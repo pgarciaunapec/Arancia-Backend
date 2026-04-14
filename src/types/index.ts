@@ -4,6 +4,27 @@ import { Types } from "mongoose";
 // User types
 export type UserRole = "customer" | "staff" | "admin";
 
+export interface ISavedAddress {
+  _id: Types.ObjectId;
+  label?: string;
+  name: string;
+  address: string;
+  city: string;
+  zip?: string;
+  isDefault?: boolean;
+}
+
+export interface ISavedCard {
+  _id: Types.ObjectId;
+  label?: string;
+  last4: string;
+  cardType: "visa" | "mastercard" | "other";
+  expiryMonth: number;
+  expiryYear: number;
+  isDefault?: boolean;
+  cardHash?: string; // hashed full card number (select: false)
+}
+
 export interface IUser {
   _id: Types.ObjectId;
   name: string;
@@ -11,6 +32,8 @@ export interface IUser {
   password: string;
   phone?: string;
   address?: string;
+  savedAddresses?: ISavedAddress[];
+  savedCards?: ISavedCard[];
   role: UserRole;
   isVip: boolean;
   vipDiscount: number;

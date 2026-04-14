@@ -35,6 +35,142 @@ router.put(
 
 /**
  * @swagger
+ * /users/me/saved-addresses:
+ *   get:
+ *     summary: Obtener direcciones guardadas del usuario actual
+ *     tags:
+ *       - Usuarios
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get(
+  "/me/saved-addresses",
+  authMiddleware,
+  UserController.getSavedAddresses,
+);
+
+/**
+ * @swagger
+ * /users/me/saved-addresses:
+ *   post:
+ *     summary: Agregar nueva dirección guardada
+ *     tags:
+ *       - Usuarios
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post(
+  "/me/saved-addresses",
+  authMiddleware,
+  validateYupBody(require("../schemas/yup.schemas").savedAddressYupSchema),
+  UserController.addSavedAddress,
+);
+
+/**
+ * @swagger
+ * /users/me/saved-addresses/:addressId:
+ *   put:
+ *     summary: Actualizar dirección guardada
+ *     tags:
+ *       - Usuarios
+ *     security:
+ *       - bearerAuth: []
+ */
+router.put(
+  "/me/saved-addresses/:addressId",
+  authMiddleware,
+  validateYupParams(mongoIdParamYupSchema),
+  validateYupBody(require("../schemas/yup.schemas").savedAddressYupSchema),
+  UserController.updateSavedAddress,
+);
+
+/**
+ * @swagger
+ * /users/me/saved-addresses/:addressId:
+ *   delete:
+ *     summary: Eliminar dirección guardada
+ *     tags:
+ *       - Usuarios
+ *     security:
+ *       - bearerAuth: []
+ */
+router.delete(
+  "/me/saved-addresses/:addressId",
+  authMiddleware,
+  validateYupParams(mongoIdParamYupSchema),
+  UserController.deleteSavedAddress,
+);
+
+/**
+ * @swagger
+ * /users/me/saved-cards:
+ *   get:
+ *     summary: Obtener tarjetas guardadas del usuario actual
+ *     tags:
+ *       - Usuarios
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get(
+  "/me/saved-cards",
+  authMiddleware,
+  UserController.getSavedCards,
+);
+
+/**
+ * @swagger
+ * /users/me/saved-cards:
+ *   post:
+ *     summary: Agregar nueva tarjeta guardada (solo últimos 4 dígitos)
+ *     tags:
+ *       - Usuarios
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post(
+  "/me/saved-cards",
+  authMiddleware,
+  validateYupBody(require("../schemas/yup.schemas").savedCardYupSchema),
+  UserController.addSavedCard,
+);
+
+/**
+ * @swagger
+ * /users/me/saved-cards/:cardId:
+ *   put:
+ *     summary: Actualizar tarjeta guardada
+ *     tags:
+ *       - Usuarios
+ *     security:
+ *       - bearerAuth: []
+ */
+router.put(
+  "/me/saved-cards/:cardId",
+  authMiddleware,
+  validateYupParams(mongoIdParamYupSchema),
+  validateYupBody(require("../schemas/yup.schemas").savedCardYupSchema),
+  UserController.updateSavedCard,
+);
+
+/**
+ * @swagger
+ * /users/me/saved-cards/:cardId:
+ *   delete:
+ *     summary: Eliminar tarjeta guardada
+ *     tags:
+ *       - Usuarios
+ *     security:
+ *       - bearerAuth: []
+ */
+router.delete(
+  "/me/saved-cards/:cardId",
+  authMiddleware,
+  validateYupParams(mongoIdParamYupSchema),
+  UserController.deleteSavedCard,
+);
+
+/**
+ * @swagger
  * /users:
  *   get:
  *     summary: Obtener todos los usuarios (admin)
