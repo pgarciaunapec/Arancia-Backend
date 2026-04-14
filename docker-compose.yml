@@ -29,6 +29,21 @@ services:
       - arancia-network
       - dokploy-network
       - default
+    labels:
+      # Router HTTPS (websecure)
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}-websecure.rule=Host(`${DOMAIN}`)
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}-websecure.entrypoints=websecure
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}-websecure.tls.certresolver=letsencrypt
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}-websecure.service=${TRAEFIK_SERVICE_NAME:-arancia-backend-dev}
+      
+      # Router HTTP (redirection to HTTPS)
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}-web.rule=Host(`${DOMAIN}`)
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}-web.entrypoints=web
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}-web.middlewares=redirect-to-https
+      
+      # Service backend
+      - traefik.http.services.${TRAEFIK_SERVICE_NAME:-arancia-backend-dev}.loadbalancer.server.port=${PORT:-3003}
+      - traefik.enable=true
     healthcheck:
       test:
         - CMD
