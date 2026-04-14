@@ -26,6 +26,6 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/uploads ./uploads
 
 EXPOSE 5000
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD wget -qO- http://localhost:5000/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD sh -c "wget -qO- http://localhost:${PORT}/api/health || exit 1"
 
 CMD ["node", "dist/server.js"]
