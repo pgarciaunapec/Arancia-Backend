@@ -9,12 +9,23 @@ services:
     environment:
       - MONGODB_URI=${MONGODB_URI}
       - FRONTEND_URL=${FRONTEND_URL}
-      - PORT=${PORT}
+      # Force container to listen on 3003 so Traefik routing matches expected port
+      - PORT=3003
       - NODE_ENV=${NODE_ENV}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
     ports:
-      - "${PORT}:${PORT}"
+      - "3003:3003"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
+      - "traefik.http.routers.arancia-backend-web.rule=Host(`arancia-api-dev.nauvolan.abrdns.com`)"
+      - "traefik.http.routers.arancia-backend-web.entrypoints=web"
+      - "traefik.http.routers.arancia-backend-web.middlewares=redirect-to-https@file"
+      - "traefik.http.routers.arancia-backend-websecure.rule=Host(`arancia-api-dev.nauvolan.abrdns.com`)"
+      - "traefik.http.routers.arancia-backend-websecure.entrypoints=websecure"
+      - "traefik.http.routers.arancia-backend-websecure.tls.certresolver=letsencrypt"
+      - "traefik.http.services.arancia-backend.loadbalancer.server.port=3003"
     volumes:
       - uploads:/app/uploads
     networks:
