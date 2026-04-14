@@ -1,52 +1,217 @@
-# ⚡ Quick Reference Guide - Restaurant01
+# ⚡ QUICK REFERENCE - HOJA DE REFERENCIA RÁPIDA
 
-**Para:** Nuevo Product Manager
-**Fecha:** 2026-04-04
-**Léelo primero:** ✅ Este documento
-**Luego:** PROJECT_STATUS_2026-04-04.md → TECHNICAL_GUIDE_AND_ACTION_PLAN.md
+**Para:** Equipo de Presentadores  
+**Proyecto:** Arancia - Sistema Integral de Gestión de Restaurante  
+**Fecha:** 14 de Abril, 2026  
+**Propósito:** Referencia rápida durante presentación (imprimir o tener en pantalla)
 
 ---
 
-## 🎯 Acceso Rápido
+## 🎯 ACCESO RÁPIDO
 
 ### URLs Principales
 ```
-Frontend:      http://localhost:3000
-Backend:       http://localhost:5000
-API Swagger:   http://localhost:5000/api/docs
+Frontend Cliente:    http://localhost:3000
+Frontend Admin:      http://localhost:3000/admin
+Backend API:         http://localhost:5000
+API Swagger Docs:    http://localhost:5000/api/docs
+Health Check:        http://localhost:5000/api/health
 ```
 
-### Credenciales de Acceso Rápido
+### Credenciales de Prueba
 
-**Admin Panel:**
+**Cliente Regular:**
 ```
-Email:    admin@restaurant01.com
-Password: AdminPassword123!
-URL:      http://localhost:3000/admin/login
-```
-
-**Customer Test:**
-```
-Email:    user@restaurant01.com
-Password: UserPassword123!
+Email:    cliente@prueba.com
+Password: Prueba123!
 URL:      http://localhost:3000/login
+```
+
+**Administrador:**
+```
+Email:    admin@prueba.com
+Password: Admin123!
+URL:      http://localhost:3000/admin/login (ESPECIAL)
+```
+
+**Tarjeta Test (Stripe - Test Mode):**
+```
+Número:   4242 4242 4242 4242
+Expiry:   12/25
+CVC:      123
+⚠️ NO SE COBRA - Es test mode
 ```
 
 ---
 
-## 🚀 Iniciar el Sistema
+## 🚀 FLUJOS RÁPIDOS (30 segundos cada)
 
-### Opción 1: Script Automático (Recomendado)
-```bash
-cd c:\Users\pagar\Nextcloud\Projects\Restaurant01
-./start.sh
+### Cliente Compra Comida
+```
+1. Home (/)
+2. Menú (/menu) - agregar al carrito
+3. Carrito (/cart) - revisar
+4. Checkout (/checkout) - pagar
+5. Confirmación (/booking-confirmation)
+6. Rastreo (/order-tracking/:id)
 ```
 
-### Opción 2: Manual
-```bash
-# Terminal 1 - Backend
-cd backend
-pnpm start
+### Cliente Reserva Mesa
+```
+1. Reservaciones (/reservations)
+2. Buscar disponibilidad
+3. Confirmar
+4. Confirmación (/booking-confirmation)
+```
+
+### Admin Gestiona
+```
+1. Admin Login (/admin/login)
+2. Dashboard (/admin/dashboard)
+3. Órdenes (/admin/orders)
+4. Productos (/admin/collections)
+5. Mesas (/admin/tables)
+```
+
+---
+
+## 📋 MÓDULOS EN 1 LÍNEA
+
+| # | Módulo | URL Principal |
+|---|--------|---------------|
+| 1 | Auth | /login, /register, /profile |
+| 2 | Menú | /menu |
+| 3 | Carrito & Checkout | /cart, /checkout |
+| 4 | Órdenes | /my-orders, /order-tracking/:id |
+| 5 | Reservas | /reservations, /my-reservations |
+| 6 | Pagos | (en checkout) |
+| 7 | Delivery | /order-tracking (con mapa) |
+| 8 | Admin | /admin/* |
+| 9 | Contacto | /contact |
+| 10 | Contenido | /, /about, /gallery, /events |
+
+---
+
+## ✅ ESTADOS DE ORDEN
+
+```
+pending → confirmed → preparing → ready → in_delivery → delivered → completed
+```
+
+---
+
+## 💳 INFORMACIÓN FINANCIERA
+
+**Métodos de Pago:**
+- Tarjeta de crédito (Stripe)
+- PayPal
+- Efectivo
+- Transferencia
+
+**Costos de Envío:**
+- Delivery normal: $2 (2-3 horas)
+- Express: $5 (30-45 minutos)
+- Pickup: GRATIS (listo en 20 min)
+
+---
+
+## 🔒 SEGURIDAD
+
+✅ JWT Tokens  
+✅ HTTPS/SSL  
+✅ Password Hashing  
+✅ PCI Compliant (Stripe)  
+✅ Rate Limiting  
+✅ Input Validation  
+✅ MongoDB Atlas (remoto)
+
+---
+
+## 📊 STACK
+
+- Frontend: React 18 + Vite + TypeScript + Tailwind
+- Backend: Express + Node.js + TypeScript
+- Database: MongoDB Atlas + Mongoose
+- Auth: JWT Tokens
+- Payments: Stripe (test mode)
+- Docs: Swagger
+
+---
+
+## 🧪 PRUEBAS RÁPIDAS
+
+### Test 1: Crear Orden
+1. Login (cliente@prueba.com)
+2. /menu → agregar producto
+3. /checkout → pagar (tarjeta test)
+4. Ver confirmación y rastreo
+
+### Test 2: Ver Admin
+1. Login admin (/admin/login, admin@prueba.com)
+2. Ver dashboard con KPIs
+3. Ir a /admin/orders
+4. Cambiar estado de orden
+
+### Test 3: Reservar
+1. /reservations
+2. Buscar disponibilidad
+3. Confirmar reserva
+4. Ver en /my-reservations
+
+---
+
+## ✅ CHECKLIST ANTES DE PRESENTAR
+
+- [ ] Servidores corriendo (npm start)
+- [ ] Frontend accesible: http://localhost:3000
+- [ ] Backend accesible: http://localhost:5000
+- [ ] Credenciales listas y verificadas
+- [ ] Conoces los flujos principales
+- [ ] Practicaste 2-3 veces
+- [ ] Tienes URLs memorizadas
+- [ ] ¡Listo para presentar!
+
+---
+
+## 🚨 TROUBLESHOOTING
+
+| Problema | Solución |
+|----------|----------|
+| "No conecta" | Ver que puertos 3000 y 5000 están abiertos |
+| "Login falla" | Usuario exacto: cliente@prueba.com o admin@prueba.com |
+| "Pago rechazado" | Usar tarjeta test: 4242 4242 4242 4242 |
+| "Base de datos offline" | Verificar MongoDB Atlas connection string |
+| "Página en blanco" | Refrescar (F5) y esperar 2 segundos |
+
+---
+
+## 🎤 FRASES CLAVE PARA USAR
+
+- "Arancia es un sistema completo de gestión de restaurante"
+- "Tiene interfaz para clientes y panel administrativo"
+- "Los clientes pueden comprar, reservar y rastrear órdenes"
+- "El admin gestiona TODO en tiempo real"
+- "Es seguro con encriptación SSL y pagos Stripe"
+- "Es responsivo en desktop y móvil"
+
+---
+
+## ⏱️ TIEMPOS DE DEMO
+
+| Escenario | Duración |
+|-----------|----------|
+| Demo compra | 10 min |
+| Demo reserva | 5 min |
+| Demo admin | 10 min |
+| Demo completa | 30 min |
+| Q&A | +10 min |
+
+---
+
+**📖 Para más detalles:** Lee los módulos en `/docs/MODULES/`  
+**🎬 Documentación completa:** Ver README_MODULES.md
+
+**¡Imprime esto y llévalo a presentación! 🚀**
 
 # Terminal 2 - Frontend (otra terminal)
 pnpm dev
