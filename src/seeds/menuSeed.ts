@@ -483,13 +483,6 @@ const menuData = [
     image: "/api/images/69b08f33369bf051156113a0",
   },
   {
-    name: "Frutas",
-    category: "Ensaladas",
-    price: 250,
-    ingredients: ["Frutas tropicales", "lechuga", "queso fresco"],
-    image: "https://via.placeholder.com/400x300",
-  },
-  {
     name: "San Juan",
     category: "Ensaladas",
     price: 240,
@@ -534,13 +527,6 @@ const menuData = [
     price: 320,
     ingredients: ["Porción menor de camarofongo"],
     image: "/api/images/69b08f38369bf051156113d8",
-  },
-  {
-    name: "Camarones al Ajillo",
-    category: "Rincón Marino",
-    price: 450,
-    ingredients: ["Camarones al ajillo", "salsa tropical"],
-    image: "https://via.placeholder.com/400x300",
   },
   {
     name: "Pescado Boca Chica",
@@ -598,13 +584,6 @@ const menuData = [
     ingredients: ["Mezcla de mariscos", "salsa especial"],
     image: "/api/images/69b08f3d369bf0511561142c",
   },
-  {
-    name: "Filete de Pescado",
-    category: "Rincón Marino",
-    price: 420,
-    ingredients: ["Filete de pescado fresco", "preparaciones variadas"],
-    image: "https://via.placeholder.com/400x300",
-  },
 
   // 🍰 Postres
   {
@@ -613,13 +592,6 @@ const menuData = [
     price: 150,
     ingredients: ["Pan viejo", "leche", "huevos", "azúcar"],
     image: "/api/images/69b08f3e369bf05115611438",
-  },
-  {
-    name: "Coco al Horno",
-    category: "Postres",
-    price: 180,
-    ingredients: ["Coco rallado", "azúcar", "leche condensada"],
-    image: "https://via.placeholder.com/400x300",
   },
   {
     name: "Flan de Leche",
@@ -662,13 +634,6 @@ const menuData = [
     price: 190,
     ingredients: ["Bizcocho", "tres tipos de leche", "merengue"],
     image: "/api/images/69b08f42369bf05115611482",
-  },
-  {
-    name: "Majarete",
-    category: "Postres",
-    price: 150,
-    ingredients: ["Maíz", "leche", "canela", "pasas"],
-    image: "https://via.placeholder.com/400x300",
   },
 ];
 
