@@ -568,7 +568,27 @@ export const uploadAsset = async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    const publicPath = `/uploads/admin/${file.filename}`;
+    // Guardar el archivo en GridFS (bucket 'images') y exponer /api/images/:id
+    const db = getDb();
+    const bucket = new mongoose.mongo.GridFSBucket(db!, { bucketName: "images" });
+
+    const uploadId = await new Promise<mongoose.Types.ObjectId>((resolve, reject) => {
+      try {
+        const uploadStream = bucket.openUploadStream(file.originalname, {
+          contentType: file.mimetype,
+        });
+        uploadStream.end(file.buffer);
+        uploadStream.on("finish", function () {
+          // uploadStream.id es el ObjectId del archivo subido
+          resolve(uploadStream.id as mongoose.Types.ObjectId);
+        });
+        uploadStream.on("error", (err) => reject(err));
+      } catch (err) {
+        reject(err);
+      }
+    });
+
+    const publicPath = `/api/images/${String(uploadId)}`;
     await col.updateOne(byId(id), { $set: { [fieldName]: publicPath } });
     const after = await col.findOne(byId(id));
 
@@ -585,11 +605,12 @@ export const uploadAsset = async (req: AuthRequest, res: Response) => {
     res.json({
       success: true,
       data: {
-        fileName: file.filename,
+        fileName: file.originalname,
         originalName: file.originalname,
         mimeType: file.mimetype,
         size: file.size,
         path: publicPath,
+        id: String(uploadId),
       },
     });
   } catch (error) {

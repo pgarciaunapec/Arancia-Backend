@@ -1,29 +1,72 @@
-version: "3.8"
+# ========================================
+# ARANCIA BACKEND - DOCKER COMPOSE
+# Variabilizado con .env file y variables por defecto
+# ========================================
+version: '2.1'
 
 services:
+  # ========================================
+  # Backend API
+  # ========================================
   backend:
-    build: .
-    image: arancia-backend:latest
-    restart: always
-    env_file: .env
-    environment:
-      - MONGODB_URI=${MONGODB_URI}
-      - FRONTEND_URL=${FRONTEND_URL}
-      - PORT=${PORT}
-      - NODE_ENV=${NODE_ENV}
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: ${NODE_ENV:-production}
+        PORT: ${PORT:-3003}
+        JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+    container_name: ${BACKEND_CONTAINER_NAME:-arancia-backend}
+    restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "${BACKEND_PORT:-3003}:${PORT:-3003}"
+    environment:
+      # Server Configuration
+      PORT: ${PORT:-3003}
+      NODE_ENV: ${NODE_ENV:-production}
+      
+      # MongoDB Connection
+      # Format: mongodb://username:password@host:port/database
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:Pantonio2404@mongodb:27017/arancia}
+      
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET:-arancia_prod_Xy7n8R!kQwq2Z7v}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      
+      # Frontend URL
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      
+      # Domain Configuration
+      DOMAIN: ${DOMAIN:-localhost}
+      
+      # Traefik Configuration (for Dokploy deployment)
+      TRAEFIK_ROUTER_NAME: ${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}
+      TRAEFIK_SERVICE_NAME: ${TRAEFIK_SERVICE_NAME:-arancia-backend-dev}
+    
     volumes:
-      - uploads:/app/uploads
+      - ./src:/app/src
+      - ./uploads:/app/uploads
+
     networks:
-      - dokploy-network
+      - arancia-network
 
-volumes:
-  uploads:
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${PORT:-3003}/api', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
+# ========================================
+# Networks
+# ========================================
 networks:
-  dokploy-network:
-    external: true
-    name: dokploy-network
+  arancia-network:
+    driver: bridge
+
+# ========================================
+# Volumes
+# ========================================
+volumes:
+  # uploads stored on host
+  uploads_data:
+    driver: local

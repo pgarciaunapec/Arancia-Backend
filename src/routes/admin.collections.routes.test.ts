@@ -204,7 +204,7 @@ describe("admin collections routes", () => {
       })
       .expect(200);
 
-    expect(uploadResponse.body.data.path).toContain("/uploads/admin/");
+    expect(uploadResponse.body.data.path).toContain("/api/images/");
 
     const exportResponse = await request(app)
       .get(
