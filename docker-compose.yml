@@ -1,53 +1,102 @@
-version: "3.8"
+# ========================================
+# ARANCIA BACKEND - DOCKER COMPOSE
+# Variabilizado con .env file y variables por defecto
+# ========================================
+version: '3.8'
 
 services:
-  backend:
-    build: .
-    image: arancia-backend:latest
-    restart: always
-    env_file: .env
-    environment:
-      - MONGODB_URI=${MONGODB_URI}
-      - FRONTEND_URL=${FRONTEND_URL}
-      - PORT=${PORT:-3003}
-      - NODE_ENV=${NODE_ENV:-development}
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+  # ========================================
+  # MongoDB Database
+  # ========================================
+  mongodb:
+    image: mongo:7.0
+    container_name: ${MONGODB_CONTAINER_NAME:-arancia-mongodb}
+    restart: unless-stopped
     ports:
-      - "${PORT:-3003}:${PORT:-3003}"
-    # Traefik Labels - Variablizados para Dokploy
-    labels:
-      - traefik.enable=true
-      # Router HTTPS (websecure)
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend}-websecure.rule=Host(`${DOMAIN}`)
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend}-websecure.entrypoints=websecure
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend}-websecure.tls.certresolver=letsencrypt
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend}-websecure.service=${TRAEFIK_SERVICE_NAME:-arancia-backend}
-      # Router HTTP (redirección a HTTPS)
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend}-web.rule=Host(`${DOMAIN}`)
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend}-web.entrypoints=web
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend}-web.middlewares=redirect-to-https
-      # Middleware de redirección HTTP a HTTPS
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
-      # Servicio (sin conflicto con servicios automáticos)
-      - traefik.http.services.${TRAEFIK_SERVICE_NAME:-arancia-backend}.loadbalancer.server.port=${PORT:-3003}
-      - traefik.http.services.${TRAEFIK_SERVICE_NAME:-arancia-backend}.loadbalancer.server.scheme=http
-      # Security Headers Middleware
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-arancia-backend}-websecure.middlewares=securityheaders
-      - traefik.http.middlewares.securityheaders.headers.accesscontrolalloworiginlist=${FRONTEND_URL}
-      - traefik.http.middlewares.securityheaders.headers.accesscontrolmaxage=100
-      - traefik.http.middlewares.securityheaders.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS,PATCH
-      - traefik.http.middlewares.securityheaders.headers.accesscontrolallowheaders=*
+      - "${MONGODB_PORT:-27017}:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-mongo}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-Pantonio2404}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-arancia}
     volumes:
-      - uploads:/app/uploads
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
     networks:
-      - dokploy-network
+      - ${NETWORK_NAME:-arancia-network}
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-volumes:
-  uploads:
+  # ========================================
+  # Backend API
+  # ========================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: ${NODE_ENV:-production}
+        PORT: ${PORT:-3003}
+        JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+    container_name: ${BACKEND_CONTAINER_NAME:-arancia-backend}
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-3003}:${PORT:-3003}"
+    environment:
+      # Server Configuration
+      PORT: ${PORT:-3003}
+      NODE_ENV: ${NODE_ENV:-production}
+      
+      # MongoDB Connection
+      # Format: mongodb://username:password@host:port/database
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:Pantonio2404@mongodb:27017/arancia}
+      
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET:-arancia_prod_Xy7n8R!kQwq2Z7v}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      
+      # Frontend URL
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      
+      # Domain Configuration
+      DOMAIN: ${DOMAIN:-localhost}
+      
+      # Traefik Configuration (for Dokploy deployment)
+      TRAEFIK_ROUTER_NAME: ${TRAEFIK_ROUTER_NAME:-arancia-backend-dev}
+      TRAEFIK_SERVICE_NAME: ${TRAEFIK_SERVICE_NAME:-arancia-backend-dev}
+    
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    
+    volumes:
+      - ./src:/app/src
+      - ./uploads:/app/uploads
+    
+    networks:
+      - ${NETWORK_NAME:-arancia-network}
+    
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${PORT:-3003}/api', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
+# ========================================
+# Networks
+# ========================================
 networks:
-  dokploy-network:
-    external: true
-    name: dokploy-network
+  ${NETWORK_NAME:-arancia-network}:
+    driver: bridge
+
+# ========================================
+# Volumes
+# ========================================
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
